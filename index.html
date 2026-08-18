@@ -105,6 +105,12 @@
   .pill-bull { background: rgba(255,77,79,.18); color: var(--red); }
   .pill-bear { background: rgba(31,170,89,.18); color: var(--green); }
   .pill-neutral { background: rgba(139,148,163,.2); color: var(--muted); }
+
+  /* 复制全部发言按钮 */
+  .copy-btn { display:inline-block; background: var(--amber); color:#1a1a1a; border:none;
+    border-radius:8px; padding:9px 14px; font-size:13px; font-weight:700; cursor:pointer; }
+  .copy-btn:active { opacity:.82; }
+  .wolf-all-box { margin-top:14px; border-top:1px solid var(--line); padding-top:12px; }
   .kw { display: inline-block; font-size: 12px; background: var(--card2); border: 1px solid var(--line); border-radius: 6px; padding: 3px 9px; margin: 3px 4px 0 0; color: var(--muted); }
   .kw b { color: var(--text); }
 
@@ -332,6 +338,16 @@ function renderWolf(w, yWolf) {
   const kws = (w.top_keywords || []).map(([k,c]) => `<span class="kw"><b>${k}</b> ×${c}</span>`).join("");
   const okws = (w.owner_top_keywords || []).map(([k,c]) => `<span class="kw"><b>${k}</b> ×${c}</span>`).join("") || `<span style="color:var(--muted);font-size:12px">—</span>`;
 
+  // 一次性全史（extract_wolf_all.py → data/wolf_all.js）。存在则复制全部，否则复制当日子集。
+  // 按钮始终展示：未跑全史前也能复制"今日啊狼发言"，跑完全史后自动升级为"复制全部"。
+  const wolfAll = window.NGA_WOLF_ALL || [];
+  const wolfAllSection = `
+    <div class="wolf-all-box">
+      <div style="font-weight:700;color:var(--amber);margin-bottom:8px">📋 复制啊狼发言${wolfAll.length ? `（全部 / 含历史 ${wolfAll.length} 条）` : "（今日）"}</div>
+      <button class="copy-btn" id="copyWolfAll">📋 复制${wolfAll.length ? "全部" : "今日"}发言</button>
+      <div id="copyWolfMsg" style="color:var(--muted);font-size:12px;margin-top:6px"></div>
+    </div>`;
+
   // 同比（狼楼今日发言总数 / 楼主方向分布）
   const ySum = yWolf?.today_replies;
   const totalDelta = deltaHtml(allTotal, ySum);
@@ -361,6 +377,7 @@ function renderWolf(w, yWolf) {
         <div style="margin-top:14px;font-weight:600;color:var(--amber)">楼主热词</div>
         <div style="margin-top:4px">${okws}</div>
       </div>
+      ${wolfAllSection}
     </div>
   `);
 }
@@ -417,11 +434,73 @@ function loadToday() {
   });
 }
 
+// 一次性全史导出（extract_wolf_all.py 生成 data/wolf_all.js = window.NGA_WOLF_ALL）
+async function loadWolfAll() {
+  try {
+    await loadScript("./data/wolf_all.js");
+  } catch {
+    window.NGA_WOLF_ALL = null;
+  }
+}
+
+// 把发言列表拼成纯文本（与 .txt 导出同款格式），供复制
+function formatWolfAllText(posts) {
+  if (!posts || !posts.length) return "";
+  return posts.map((p, i) =>
+    `【${i + 1}】${p.time || "未知"}\n${(p.content || "").trim()}\n`
+  ).join("\n");
+}
+
+// 复制文本：优先 Clipboard API（https 有效），失败回退 textarea + execCommand（file:// 也能用）
+async function copyText(text) {
+  try {
+    if (navigator.clipboard && window.isSecureContext) {
+      await navigator.clipboard.writeText(text);
+      return true;
+    }
+  } catch { /* fall through */ }
+  try {
+    const ta = document.createElement("textarea");
+    ta.value = text;
+    ta.style.position = "fixed";
+    ta.style.top = "-9999px";
+    ta.style.opacity = "0";
+    document.body.appendChild(ta);
+    ta.focus();
+    ta.select();
+    const ok = document.execCommand("copy");
+    document.body.removeChild(ta);
+    return ok;
+  } catch {
+    return false;
+  }
+}
+
+// 绑定「复制全部发言」按钮：有全史就复制全部，没有就复制当日子集
+function bindWolfCopy() {
+  const btn = document.getElementById("copyWolfAll");
+  if (!btn) return;
+  btn.addEventListener("click", async () => {
+    const all = window.NGA_WOLF_ALL;
+    const daily = window.NGA_DATA?.wolf_house?.owner_posts || [];
+    const posts = (all && all.length) ? all : daily;
+    const text = formatWolfAllText(posts);
+    const ok = await copyText(text);
+    const msg = document.getElementById("copyWolfMsg");
+    if (msg) {
+      msg.textContent = ok
+        ? `已复制 ${posts.length} 条到剪贴板，可粘贴到备忘录/微信`
+        : "复制失败，请长按文字手动选择复制";
+    }
+  });
+}
+
 async function main() {
   const app = document.getElementById("app");
   const upd = document.getElementById("updated");
   try {
     await loadYesterday();            // 可选；失败也无所谓
+    await loadWolfAll();              // 可选；啊狼全部发言（一次性导出），失败也无所谓
     const d = await loadToday();
     const b = d.board, w = d.wolf_house;
     const y = window.NGA_YESTERDAY || null;
@@ -438,6 +517,7 @@ async function main() {
     app.appendChild(renderClassifiedPosts(b));
     app.appendChild(renderWolf(w, yWolf));
     bindWolfToggle();
+    bindWolfCopy();
   } catch (e) {
     app.innerHTML = "";
     app.appendChild(el(`<div class="card"><div class="err">数据加载失败：${escapeHtml(e.message)}<br/>请稍后刷新，或检查 data/nga_data.js 是否存在。</div></div>`));
