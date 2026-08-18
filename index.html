@@ -16,6 +16,8 @@
     --green: #1faa59;    /* 跌 / 看空 / 压低因素 */
     --amber: #ffb020;
     --blue: #4d8dff;
+    --up: #ff4d4f;       /* 同比上升 */
+    --down: #1faa59;     /* 同比下降 */
   }
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
   body {
@@ -27,40 +29,44 @@
   header { padding: 16px 4px 8px; }
   header h1 { font-size: 19px; margin: 0 0 4px; font-weight: 700; }
   header .sub { color: var(--muted); font-size: 12px; }
-  .card {
-    background: var(--card); border: 1px solid var(--line); border-radius: 14px;
-    padding: 14px; margin: 12px 0;
-  }
+
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 14px; margin: 12px 0; }
   .card h2 { font-size: 15px; margin: 0 0 12px; display: flex; align-items: center; gap: 8px; }
   .card h2 .tag { font-size: 11px; color: var(--muted); font-weight: 400; }
-  /* 指数大数字 */
-  .idx-row { display: flex; align-items: center; gap: 16px; }
-  .idx-score { font-size: 52px; font-weight: 800; line-height: 1; }
-  .idx-meta { flex: 1; }
-  .level-badge {
-    display: inline-block; padding: 4px 12px; border-radius: 999px; font-weight: 700; font-size: 14px;
-    background: rgba(255,77,79,.15); color: var(--red); border: 1px solid rgba(255,77,79,.4);
-  }
-  .idx-net { color: var(--muted); font-size: 13px; margin-top: 6px; }
-  /* 饼图 */
-  .donut-wrap { display: flex; align-items: center; gap: 14px; margin-top: 10px; }
-  .legend { flex: 1; font-size: 13px; }
-  .legend .row { display: flex; align-items: center; gap: 8px; margin: 4px 0; }
-  .legend .dot { width: 10px; height: 10px; border-radius: 3px; flex: none; }
-  .legend .nm { flex: 1; color: var(--muted); }
-  .legend .vl { font-weight: 600; }
-  /* 指标卡 */
-  .metrics { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-  .metric { background: var(--card2); border-radius: 10px; padding: 10px 12px; }
-  .metric .k { color: var(--muted); font-size: 12px; }
-  .metric .v { font-size: 22px; font-weight: 700; margin-top: 2px; }
-  .v.red { color: var(--red); } .v.green { color: var(--green); }
-  /* 帖子列表 */
-  .post { padding: 9px 0; border-bottom: 1px solid var(--line); }
+
+  /* 仪表盘 gauge */
+  .gauge { position: relative; width: 280px; max-width: 100%; margin: 6px auto 4px; height: 200px; }
+  .gauge svg { display: block; width: 280px; height: 180px; }
+  .gauge .score { position: absolute; left: 50%; top: 110px; transform: translate(-50%, 0);
+                  font: 800 50px/1 -apple-system, sans-serif; letter-spacing: -1px; }
+  .gauge .level { position: absolute; left: 50%; top: 168px; transform: translateX(-50%);
+                  font-size: 13px; font-weight: 700; white-space: nowrap; }
+  .gauge .caption { text-align: center; font-size: 12px; color: var(--muted); margin: 4px 0 -2px; }
+
+  /* 关键指标行 */
+  .kv { display: flex; justify-content: space-between; align-items: center; padding: 8px 0;
+        border-bottom: 1px dashed var(--line); font-size: 14px; }
+  .kv:last-child { border-bottom: none; }
+  .kv .k { color: var(--muted); }
+  .kv .v { font-weight: 700; font-variant-numeric: tabular-nums; }
+  .kv .delta { font-size: 11px; margin-left: 6px; }
+  .kv .delta.up { color: var(--up); }
+  .kv .delta.down { color: var(--down); }
+  .kv .delta.flat { color: var(--muted); }
+  .kv .v.red { color: var(--red); } .kv .v.green { color: var(--green); } .kv .v.amber { color: var(--amber); }
+
+  /* 分类帖子 */
+  .cat-section { margin-top: 10px; }
+  .cat-title { font-size: 13px; font-weight: 700; margin: 8px 0 4px; display: flex; align-items: center; gap: 8px; }
+  .cat-title .cnt { color: var(--muted); font-size: 11px; font-weight: 400; }
+  .post { padding: 9px 0; border-bottom: 1px solid var(--line); display: flex; align-items: flex-start; gap: 8px; }
   .post:last-child { border-bottom: none; }
-  .post .t { font-size: 14px; }
+  .post .body { flex: 1; min-width: 0; }
+  .post .t { font-size: 14px; word-break: break-word; }
+  .post .meta { color: var(--muted); font-size: 11px; margin-top: 3px; display: flex; gap: 6px; }
   .cat {
-    display: inline-block; font-size: 11px; padding: 1px 7px; border-radius: 6px; margin-right: 6px; vertical-align: middle;
+    display: inline-block; font-size: 11px; padding: 1px 7px; border-radius: 6px;
+    margin-right: 6px; vertical-align: middle; flex: none;
   }
   .cat-excitement { background: rgba(255,77,79,.18); color: var(--red); }
   .cat-showoff_gain { background: rgba(255,176,32,.18); color: var(--amber); }
@@ -68,7 +74,10 @@
   .cat-panic_sell { background: rgba(31,170,89,.18); color: var(--green); }
   .cat-worry_bear { background: rgba(31,170,89,.12); color: #5fd49a; }
   .cat-anger_verified { background: rgba(77,141,255,.18); color: var(--blue); }
-  /* 狼楼风向条 */
+
+  /* 狼楼 */
+  .owner-card { background: linear-gradient(135deg, rgba(255,176,32,.12), rgba(255,77,79,.08)); border: 1px solid rgba(255,176,32,.35); }
+  .owner-card h2 { color: var(--amber); }
   .bar-row { display: flex; align-items: center; gap: 8px; margin: 6px 0; font-size: 13px; }
   .bar-row .lab { width: 44px; color: var(--muted); flex: none; }
   .bar { flex: 1; height: 18px; background: var(--card2); border-radius: 5px; overflow: hidden; position: relative; }
@@ -77,21 +86,32 @@
   .bull > span { background: var(--red); }
   .bear > span { background: var(--green); }
   .neutral > span { background: var(--muted); }
-  /* 楼主高亮 */
-  .owner-card { background: linear-gradient(135deg, rgba(255,176,32,.12), rgba(255,77,79,.08)); border: 1px solid rgba(255,176,32,.35); }
-  .owner-card h2 { color: var(--amber); }
+
+  /* 只看楼主 toggle */
+  .toggle { display: flex; background: var(--card2); border-radius: 8px; padding: 3px; margin: 8px 0 12px; }
+  .toggle button {
+    flex: 1; background: transparent; border: none; color: var(--muted);
+    padding: 7px 0; border-radius: 6px; font-size: 13px; font-weight: 600;
+    cursor: pointer; transition: all .15s;
+  }
+  .toggle button.active { background: var(--amber); color: #1a1a1a; }
+  .toggle button .ct { font-size: 11px; opacity: .8; margin-left: 4px; font-weight: 400; }
+
+  /* 楼主卡片 */
   .owner-post { background: var(--card2); border-radius: 10px; padding: 10px 12px; margin: 8px 0; }
-  .owner-post .hd { display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); margin-bottom: 4px; }
+  .owner-post .hd { display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); margin-bottom: 4px; gap: 6px; }
   .owner-post .ct { font-size: 14px; white-space: pre-wrap; word-break: break-word; }
-  .pill { font-size: 11px; padding: 1px 8px; border-radius: 999px; }
+  .pill { font-size: 11px; padding: 1px 8px; border-radius: 999px; flex: none; }
   .pill-bull { background: rgba(255,77,79,.18); color: var(--red); }
   .pill-bear { background: rgba(31,170,89,.18); color: var(--green); }
   .pill-neutral { background: rgba(139,148,163,.2); color: var(--muted); }
   .kw { display: inline-block; font-size: 12px; background: var(--card2); border: 1px solid var(--line); border-radius: 6px; padding: 3px 9px; margin: 3px 4px 0 0; color: var(--muted); }
   .kw b { color: var(--text); }
+
   .err { color: var(--red); font-size: 13px; padding: 20px; text-align: center; }
   footer { color: var(--muted); font-size: 11px; text-align: center; padding: 16px 0 4px; }
   a { color: var(--blue); text-decoration: none; }
+  .hidden { display: none !important; }
 </style>
 </head>
 <body>
@@ -107,11 +127,13 @@
 
   <footer>
     数据来源：NGA [股市]技术分析 板块 + 狼楼（楼主·啊狼）<br/>
-    情绪分类为关键词启发式统计，非投资建议 · 每日 08:00 / 12:00 / 18:00 / 22:00 自动更新
+    情绪分类为关键词启发式统计 · 非投资建议 · 每日 08:00 / 12:00 / 18:00 / 22:00 自动更新<br/>
+    <span id="compareNote"></span>
   </footer>
 </div>
 
 <script>
+// === 静态分类标签 ===
 const CAT_LABEL = {
   excitement: "情绪兴奋", showoff_gain: "晒收益", bullish: "看多",
   panic_sell: "崩溃清仓", worry_bear: "担忧/看空", anger_verified: "本人愤怒"
@@ -120,6 +142,23 @@ const CAT_COLOR = {
   excitement: "#ff4d4f", showoff_gain: "#ffb020", bullish: "#ff8587",
   panic_sell: "#1faa59", worry_bear: "#5fd49a", anger_verified: "#4d8dff"
 };
+// 高度→等级（与 config.json thresholds 对齐）
+function levelFromScore(s) {
+  if (s >= 50) return "极度狂热";
+  if (s >= 30) return "情绪高涨";
+  if (s >= 10) return "中性偏暖";
+  if (s >= -10) return "中性";
+  if (s >= -30) return "情绪低落";
+  return "恐慌";
+}
+// 等级标签对应的 gauge 颜色
+function levelColor(level) {
+  return ({
+    "极度狂热": "#ff4d4f", "情绪高涨": "#ff8a3d",
+    "中性偏暖": "#ffb020", "中性": "#c0c4cf",
+    "情绪低落": "#52c97a", "恐慌": "#1faa59"
+  })[level] || "#c0c4cf";
+}
 
 function el(html) { const d = document.createElement("div"); d.innerHTML = html.trim(); return d.firstChild; }
 function fmtTime(iso) {
@@ -129,106 +168,242 @@ function fmtTime(iso) {
   const p = n => String(n).padStart(2, "0");
   return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`;
 }
-
-function renderBoard(b) {
-  const m = b.metrics, ix = b.index, pie = b.pie;
-  const scoreColor = ix.index_score >= 50 ? "var(--red)" : "var(--green)";
-  // 饼图（SVG 环形）
-  const segs = [
-    ["excitement","excitement"], ["showoff_gain","showoff_gain"], ["bullish","bullish"],
-    ["panic_sell","panic_sell"], ["worry_bear","worry_bear"], ["anger_verified","anger_verified"]
-  ].filter(([k]) => pie[k] > 0);
-  const total = segs.reduce((s,[k]) => s + pie[k], 0) || 1;
-  let acc = 0; const R = 42, C = 2 * Math.PI * R;
-  let rings = "";
-  segs.forEach(([k]) => {
-    const frac = pie[k] / total;
-    const len = frac * C;
-    rings += `<circle cx="50" cy="50" r="${R}" fill="none" stroke="${CAT_COLOR[k]}" stroke-width="14"
-      stroke-dasharray="${len} ${C-len}" stroke-dashoffset="${-acc}" transform="rotate(-90 50 50)"/>`;
-    acc += len;
-  });
-  const legend = segs.map(([k]) =>
-    `<div class="row"><span class="dot" style="background:${CAT_COLOR[k]}"></span>
-     <span class="nm">${CAT_LABEL[k]}</span><span class="vl">${pie[k]}%</span></div>`).join("");
-
-  const card = el(`
-    <div class="card">
-      <h2>板块情绪指数 <span class="tag">[股市]技术分析 · 当日新帖</span></h2>
-      <div class="idx-row">
-        <div class="idx-score" style="color:${scoreColor}">${ix.index_score}</div>
-        <div class="idx-meta">
-          <span class="level-badge">${ix.level}</span>
-          <div class="idx-net">情绪净分 ${ix.net_score > 0 ? "+" : ""}${ix.net_score} ｜ 提高 ${m.bullish_total} · 压低 ${m.bearish_total}</div>
-        </div>
-      </div>
-      <div class="donut-wrap">
-        <svg width="100" height="100" viewBox="0 0 100 100">${rings}</svg>
-        <div class="legend">${legend}</div>
-      </div>
-      <div class="metrics" style="margin-top:12px">
-        <div class="metric"><div class="k">今日新发帖</div><div class="v">${m.today_new_posts}</div></div>
-        <div class="metric"><div class="k">今日总回复</div><div class="v">${m.today_total_replies}</div></div>
-        <div class="metric"><div class="k">提高因素</div><div class="v red">${m.bullish_total}<span style="font-size:12px;color:var(--muted)"> 兴奋${m.excitement}/晒${m.showoff_gain}/多${m.bullish}</span></div></div>
-        <div class="metric"><div class="k">压低因素</div><div class="v green">${m.bearish_total}<span style="font-size:12px;color:var(--muted)"> 崩${m.panic_sell}/忧${m.worry_bear}/怒${m.anger_verified}</span></div></div>
-      </div>
-      ${b.classified_posts && b.classified_posts.length ? `
-      <div style="margin-top:12px">
-        <div class="k" style="color:var(--muted);font-size:12px;margin-bottom:6px">带情绪标签的帖子（${b.classified_posts.length}）</div>
-        ${b.classified_posts.slice(0, 12).map(p => `
-          <div class="post">
-            <span class="cat cat-${p.category}">${CAT_LABEL[p.category]||p.category}</span>
-            <span class="t">${escapeHtml(p.title)}</span>
-          </div>`).join("")}
-      </div>` : ""}
-    </div>`);
-  return card;
+function escapeHtml(s) {
+  return String(s || "").replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+// "今日 X / 昨日 Y  +N (+%)" 同比；prev 缺则只显示 today
+function deltaHtml(now, prev, higherIsBad) {
+  if (prev === undefined || prev === null) return "";
+  const diff = now - prev;
+  if (diff === 0) return '<span class="delta flat">±0</span>';
+  const pct = prev === 0 ? null : Math.round(diff / prev * 100);
+  const sign = diff > 0 ? "+" : "";
+  // higherIsBad 不用于反向：保留给情绪净分/指数这类"高=好/低=坏"的语义
+  // 这里简化：上升 up=红、下行 down=绿（与 A 股习惯一致）。如要看空类指标反转，可加 higherIsBad。
+  const cls = diff > 0 ? "up" : "down";
+  const txt = pct === null ? `${sign}${diff}` : `${sign}${diff} (${sign}${pct}%)`;
+  return `<span class="delta ${cls}">${txt}</span>`;
 }
 
-function renderWolf(w) {
+// === 仪表盘（半圆凹底 + 渐变弧 + 大数字 + 等级） ===
+function renderGauge(board) {
+  const score = board.index.index_score;
+  const s = Math.max(0, Math.min(100, score));   // 钳制到 [0,100] 用于指针位置；原始分数仍显示
+  // 半圆：开口朝下（碗状），中心 (140, 90)，半径 80
+  // 弧线从左 (60,90) 顺时针扫到右 (220,90)，经过底部 (140,170)
+  const cx = 140, cy = 90, R = 80, SW = 18;
+  const segments = [
+    [0, 5, "#1faa59"], [5, 20, "#52c97a"],
+    [20, 40, "#c0c4cf"], [40, 55, "#ffb020"],
+    [55, 75, "#ff8a3d"], [75, 100, "#ff4d4f"],
+  ];
+  function arcD(x0, x1) {
+    // 角度：x=0 → 180°（左），x=100 → 0°（右）；半圆 180° 范围
+    const a0 = 180 - (x0 / 100) * 180;
+    const a1 = 180 - (x1 / 100) * 180;
+    const r = R, large = (x1 - x0) <= 50 ? 0 : 1;
+    const rad = a => (a * Math.PI / 180);
+    // 计算时 y-down：标准数学中 sin 值要取负用于 y-up → 实际 SVG 中 y=cy - r*sin(angle)
+    const p0x = cx + r * Math.cos(rad(a0));
+    const p0y = cy - r * Math.sin(rad(a0));
+    const p1x = cx + r * Math.cos(rad(a1));
+    const p1y = cy - r * Math.sin(rad(a1));
+    // sweep=1 让弧沿顺时针（screen-down）从 p0 走到 p1，经过 cy+R 底部
+    return `M ${p0x.toFixed(2)} ${p0y.toFixed(2)} A ${r} ${r} 0 ${large} 1 ${p1x.toFixed(2)} ${p1y.toFixed(2)}`;
+  }
+  const segs = segments.map(([x0, x1, c]) =>
+    `<path d="${arcD(x0, x1)}" fill="none" stroke="${c}" stroke-width="${SW}" stroke-linecap="butt"/>`
+  ).join("");
+  // 指针：从中心 (cx, cy) 指向 s 对应的弧上点；针尾稍向下伸
+  const ang = 180 - (s / 100) * 180;
+  const rad = ang * Math.PI / 180;
+  const tipX = cx + (R - 4) * Math.cos(rad);
+  const tipY = cy - (R - 4) * Math.sin(rad);
+  const tailX = cx + 8 * Math.cos(rad + Math.PI);
+  const tailY = cy - 8 * Math.sin(rad + Math.PI);
+  const lc = levelColor(board.index.level);
+  const needle = `
+    <line x1="${tailX.toFixed(2)}" y1="${tailY.toFixed(2)}" x2="${tipX.toFixed(2)}" y2="${tipY.toFixed(2)}" stroke="${lc}" stroke-width="3" stroke-linecap="round"/>
+    <circle cx="${cx}" cy="${cy}" r="5" fill="${lc}"/>
+  `;
+  const level = board.index.level;
+  return el(`
+    <div class="card">
+      <h2>板块情绪指数 <span class="tag">[股市]技术分析 · 当日新帖</span></h2>
+      <div class="gauge">
+        <svg viewBox="0 0 280 180">${segs}${needle}</svg>
+        <div class="score" style="color:${lc}">${score.toFixed(1)}</div>
+        <div class="level" style="color:${lc}">${level}</div>
+      </div>
+      <div class="caption">情绪净分 ${board.index.net_score > 0 ? "+" : ""}${board.index.net_score} ｜ 提高 ${board.metrics.bullish_total} · 压低 ${board.metrics.bearish_total}</div>
+    </div>
+  `);
+}
+
+// === 关键指标行（带同比）===
+function renderMetrics(board, yBoard) {
+  const m = board.metrics, ix = board.index;
+  const ym = yBoard?.metrics, yi = yBoard?.index;
+  const kv = (k, now, prev, cls = "") =>
+    `<div class="kv"><span class="k">${k}</span><span><span class="v ${cls}">${now}</span>${deltaHtml(now, prev)}</span></div>`;
+  // 注意：同比方向彩色由 deltaHtml 内部根据涨跌涂色（A 股习惯 + 红 - 绿）
+  return el(`
+    <div class="card">
+      <h2>关键指标 <span class="tag">${yBoard ? `对比 ${yBoard.date}（昨日）` : "无昨日对比数据"}</span></h2>
+      ${kv("今日新发帖", m.today_new_posts, ym?.today_new_posts)}
+      ${kv("今日总回复", m.today_total_replies, ym?.today_total_replies)}
+      ${kv("提高因素（合计）", m.bullish_total, ym?.bullish_total, "red")}
+      ${kv("　情绪兴奋", m.excitement, ym?.excitement, "red")}
+      ${kv("　晒收益", m.showoff_gain, ym?.showoff_gain, "amber")}
+      ${kv("　看多", m.bullish, ym?.bullish, "red")}
+      ${kv("压低因素（合计）", m.bearish_total, ym?.bearish_total, "green")}
+      ${kv("　崩溃清仓", m.panic_sell, ym?.panic_sell, "green")}
+      ${kv("　担忧/看空", m.worry_bear, ym?.worry_bear, "green")}
+      ${kv("　本人愤怒（验证）", m.anger_verified, ym?.anger_verified)}
+      ${kv("情绪净分", (ix.net_score > 0 ? "+" : "") + ix.net_score, yi ? (yi.net_score > 0 ? "+" : "") + yi.net_score : null, ix.net_score >= 0 ? "red" : "green")}
+      ${kv("情绪指数分", ix.index_score.toFixed(1), yi ? yi.index_score.toFixed(1) : null, "amber")}
+    </div>
+  `);
+}
+
+// === 分类帖子列表（按类别分组 + 显示回复数） ===
+function renderClassifiedPosts(board) {
+  const posts = board.classified_posts || [];
+  if (!posts.length) return el('<div class="card"><div class="err">无带情绪标签的帖子</div></div>');
+  // 按 category 分组，组内按回复数降序
+  const groups = {};
+  posts.forEach(p => {
+    (groups[p.category] = groups[p.category] || []).push(p);
+  });
+  Object.values(groups).forEach(arr => arr.sort((a, b) => (b.replies || 0) - (a.replies || 0)));
+  // 渲染顺序：先提高因素（按 priority desc），后压低因素
+  const order = ["excitement", "showoff_gain", "bullish", "panic_sell", "worry_bear", "anger_verified"];
+  const cards = order.filter(k => groups[k]).map(k => {
+    const arr = groups[k];
+    return `
+      <div class="cat-section">
+        <div class="cat-title">
+          <span class="cat cat-${k}">${CAT_LABEL[k]}</span>
+          <span class="cnt">${arr.length} 条</span>
+        </div>
+        ${arr.slice(0, 10).map(p => `
+          <div class="post">
+            <div class="body">
+              <div class="t">${escapeHtml(p.title)}</div>
+              <div class="meta">
+                <span>${escapeHtml(p.author || "")}</span>
+                <span>${escapeHtml((p.time || "").slice(5))}</span>
+                <span>${p.replies || 0} 回复</span>
+              </div>
+            </div>
+          </div>`).join("")}
+        ${arr.length > 10 ? `<div class="caption" style="margin:6px 0 0;font-size:11px">…另 ${arr.length - 10} 条未显示</div>` : ""}
+      </div>
+    `;
+  }).join("");
+  return el(`
+    <div class="card">
+      <h2>带情绪标签的帖子 <span class="tag">${posts.length} 条</span></h2>
+      ${cards}
+    </div>
+  `);
+}
+
+// === 狼楼（含只看楼主 toggle）===
+function renderWolf(w, yWolf) {
   const ds = w.direction_stats, os = w.owner_direction_stats;
   const sum = (ds.bull + ds.bear + ds.neutral) || 1;
   const bar = (cls, lab, n) => `
     <div class="bar-row"><span class="lab">${lab}</span>
       <div class="bar ${cls}"><span style="width:${(n/sum*100).toFixed(1)}%"></span><span class="cnt">${n}</span></div></div>`;
-
   const ownerPosts = (w.owner_posts || []).map(p => `
     <div class="owner-post">
       <div class="hd"><span>${escapeHtml(p.author || "楼主")} · ${fmtTime(p.time)}</span>
         <span class="pill pill-${p.direction}">${p.direction==="bull"?"看多":p.direction==="bear"?"看空":"中性"}</span></div>
       <div class="ct">${escapeHtml(p.content).slice(0, 300)}</div>
     </div>`).join("") || `<div style="color:var(--muted);font-size:13px;padding:6px 0">今日楼主暂无发言记录</div>`;
-
+  const ownerTotal = (w.owner_posts || []).length;
+  const allTotal = w.today_replies || sum;
   const kws = (w.top_keywords || []).map(([k,c]) => `<span class="kw"><b>${k}</b> ×${c}</span>`).join("");
   const okws = (w.owner_top_keywords || []).map(([k,c]) => `<span class="kw"><b>${k}</b> ×${c}</span>`).join("") || `<span style="color:var(--muted);font-size:12px">—</span>`;
 
+  // 同比（狼楼今日发言总数 / 楼主方向分布）
+  const ySum = yWolf?.today_replies;
+  const totalDelta = deltaHtml(allTotal, ySum);
+
   return el(`
-    <div class="card owner-card">
+    <div class="card owner-card" id="wolfCard">
       <h2>🐺 狼楼风向 · 楼主「啊狼」</h2>
-      <div class="idx-net" style="margin-bottom:8px">今日发言 ${w.today_replies} 楼 ｜ 看多 ${ds.bull} / 看空 ${ds.bear} / 中性 ${ds.neutral}</div>
-      ${bar("bull","看多",ds.bull)}${bar("bear","看空",ds.bear)}${bar("neutral","中性",ds.neutral)}
 
-      <div style="margin-top:14px;font-weight:700;color:var(--amber)">楼主「啊狼」今日发言（${w.owner_posts?.length||0} 条）</div>
-      <div style="margin-top:6px">看多 ${os.bull} / 看空 ${os.bear} / 中性 ${os.neutral}</div>
-      ${ownerPosts}
+      <div class="toggle" id="wolfToggle">
+        <button class="active" data-mode="all">全部发言<span class="ct">${allTotal}</span></button>
+        <button data-mode="owner">只看楼主<span class="ct">${ownerTotal}</span></button>
+      </div>
 
-      <div style="margin-top:14px;font-weight:600">全楼热词</div>
-      <div style="margin-top:4px">${kws}</div>
-      <div style="margin-top:10px;font-weight:600;color:var(--amber)">楼主热词</div>
-      <div style="margin-top:4px">${okws}</div>
-    </div>`);
+      <div data-pane="all">
+        <div class="idx-net" style="color:var(--muted);font-size:13px;margin-bottom:8px">
+          今日发言 ${allTotal} 楼${totalDelta} ｜ 看多 ${ds.bull} / 看空 ${ds.bear} / 中性 ${ds.neutral}
+        </div>
+        ${bar("bull","看多",ds.bull)}${bar("bear","看空",ds.bear)}${bar("neutral","中性",ds.neutral)}
+        <div style="margin-top:14px;font-weight:600">全楼热词</div>
+        <div style="margin-top:4px">${kws || `<span style="color:var(--muted);font-size:12px">—</span>`}</div>
+      </div>
+
+      <div data-pane="owner" class="hidden" style="margin-top:8px">
+        <div style="font-weight:700;color:var(--amber);margin-bottom:6px">楼主「啊狼」今日发言（${ownerTotal} 条）</div>
+        <div style="color:var(--muted);font-size:13px;margin-bottom:8px">看多 ${os.bull} / 看空 ${os.bear} / 中性 ${os.neutral}</div>
+        ${ownerPosts}
+        <div style="margin-top:14px;font-weight:600;color:var(--amber)">楼主热词</div>
+        <div style="margin-top:4px">${okws}</div>
+      </div>
+    </div>
+  `);
 }
 
-function escapeHtml(s) {
-  return String(s || "").replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+// === toggle 绑定 ===
+function bindWolfToggle() {
+  const root = document.getElementById("wolfToggle");
+  if (!root) return;
+  const buttons = root.querySelectorAll("button");
+  // 恢复偏好
+  const saved = localStorage.getItem("nga_wolf_mode") || "all";
+  buttons.forEach(b => {
+    if (b.dataset.mode === saved) b.classList.add("active"); else b.classList.remove("active");
+    if (b.dataset.mode !== saved) {
+      const pane = document.querySelector(`[data-pane="${b.dataset.mode}"]`);
+      if (pane) pane.classList.add("hidden");
+    }
+    b.addEventListener("click", () => {
+      const mode = b.dataset.mode;
+      buttons.forEach(x => x.classList.toggle("active", x === b));
+      document.querySelectorAll("#wolfCard [data-pane]").forEach(p => {
+        p.classList.toggle("hidden", p.dataset.pane !== mode);
+      });
+      try { localStorage.setItem("nga_wolf_mode", mode); } catch {}
+    });
+  });
 }
 
-// 采用 JSONP-like 模式：用 <script src> 代替 fetch()，
-// 这样 file:// 双击打开也能加载（浏览器对 file:// 下的 fetch 默认禁用）。
-// 数据由 analyze.py 同时写出 data/nga_data.json 和 data/nga_data.js。
-function loadData() {
+// === 数据加载（JSONP-like，file:// 也行）===
+function loadScript(src) {
   return new Promise((resolve, reject) => {
-    if (window.NGA_DATA) { resolve(window.NGA_DATA); return; }
+    const s = document.createElement("script");
+    s.src = src + "?v=" + Date.now();
+    s.onload = () => resolve();
+    s.onerror = () => reject(new Error("无法加载 " + src));
+    document.head.appendChild(s);
+  });
+}
+async function loadYesterday() {
+  try {
+    await loadScript("./data/yesterday.js");
+  } catch {
+    window.NGA_YESTERDAY = null;
+  }
+}
+function loadToday() {
+  return new Promise((resolve, reject) => {
+    if (window.NGA_DATA) return resolve(window.NGA_DATA);
     const s = document.createElement("script");
     s.src = "./data/nga_data.js?v=" + Date.now();
     s.onload = () => window.NGA_DATA ? resolve(window.NGA_DATA) : reject(new Error("nga_data.js 未设置 window.NGA_DATA"));
@@ -241,12 +416,23 @@ async function main() {
   const app = document.getElementById("app");
   const upd = document.getElementById("updated");
   try {
-    const d = await loadData();
+    await loadYesterday();            // 可选；失败也无所谓
+    const d = await loadToday();
     const b = d.board, w = d.wolf_house;
-    upd.textContent = `更新于 ${fmtTime(b.generated_at)} ｜ ${b.date}`;
+    const y = window.NGA_YESTERDAY || null;
+    const yBoard = y?.board || null;
+    const yWolf = y?.wolf_house || null;
+
+    upd.textContent = `更新于 ${fmtTime(b.generated_at)} ｜ 当日 ${b.date}`;
+    document.getElementById("compareNote").textContent =
+      yBoard ? `｜ 同比 ${yBoard.date}（昨日）：今日 vs 昨日 = 红涨/绿跌` : "";
+
     app.innerHTML = "";
-    app.appendChild(renderBoard(b));
-    app.appendChild(renderWolf(w));
+    app.appendChild(renderGauge(b));
+    app.appendChild(renderMetrics(b, yBoard));
+    app.appendChild(renderClassifiedPosts(b));
+    app.appendChild(renderWolf(w, yWolf));
+    bindWolfToggle();
   } catch (e) {
     app.innerHTML = "";
     app.appendChild(el(`<div class="card"><div class="err">数据加载失败：${escapeHtml(e.message)}<br/>请稍后刷新，或检查 data/nga_data.js 是否存在。</div></div>`));
