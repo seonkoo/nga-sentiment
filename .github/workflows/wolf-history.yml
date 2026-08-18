@@ -1,0 +1,80 @@
+name: 啊狼全部发言（一次性云端导出）
+
+# 只需在 GitHub 手动触发一次：手机/网页打开 Actions → 本工作流 → Run workflow。
+# 前置：仓库 Settings → Secrets 里要有 NGA_USER / NGA_PASS（你的 NGA 账号密码）。
+# 跑完会把啊狼全部发言推到 data/wolf_all.js，手机看板「复制全部」即升级为全史。
+on:
+  workflow_dispatch:
+    inputs:
+      delay:
+        description: "每页间隔秒数（太频繁易被 NGA 限流，默认 3）"
+        required: false
+        default: "3"
+      start:
+        description: "起始页（默认 1）"
+        required: false
+        default: "1"
+      end:
+        description: "结束页（默认自动按「只看楼主」总页数，即全部）"
+        required: false
+        default: ""
+
+# 与每日情绪流水线错开推送，避免 rejected main
+concurrency:
+  group: nga-wolf
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  wolf:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install Microsoft Edge (Linux) + 依赖库
+        run: |
+          curl -fsSL https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor -o /usr/share/keyrings/microsoft-edge.gpg
+          echo "deb [arch=amd64 signed-by=/usr/share/keyrings/microsoft-edge.gpg] https://packages.microsoft.com/repos/edge stable main" | tee /etc/apt/sources.list.d/microsoft-edge.list
+          sudo apt-get update
+          sudo apt-get install -y microsoft-edge-stable \
+            libnss3 libatk-bridge2.0-0 libgtk-3-0 libgbm1 libasound2 libxshmfence1
+
+      - name: Install Python deps
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Prepare config (用 secret 注入账号密码)
+        run: cp config.example.json config.json
+
+      - name: Run extract_wolf_all.py（登录 NGA → 爬只看楼主全页 → 写 data/wolf_all.*）
+        env:
+          NGA_USER: ${{ secrets.NGA_USER }}
+          NGA_PASS: ${{ secrets.NGA_PASS }}
+        run: |
+          python extract_wolf_all.py --login \
+            --start "${{ github.event.inputs.start || '1' }}" \
+            --delay "${{ github.event.inputs.delay || '3' }}" \
+            ${{ github.event.inputs.end != '' && format('--end {0}', github.event.inputs.end) || '' }}
+
+      - name: Commit & push 啊狼发言数据
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git pull --rebase --autostash origin main
+          git add data/wolf_all.json data/wolf_all.js wolf_all_posts.txt
+          if git diff --cached --quiet; then
+            echo "无变化，跳过提交"
+          else
+            git commit -m "chore: 更新啊狼全部发言 $(date -u +'%Y-%m-%dT%H:%M:%SZ')"
+            git push
+          fi
