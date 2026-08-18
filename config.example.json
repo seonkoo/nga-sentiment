@@ -1,0 +1,102 @@
+{
+  "_note": "本文件为脱敏模板，已提交到仓库。真实账号密码不要写在这里——CI 用 Secrets(NGA_USER/NGA_PASS) 注入，本地运行时把本文件复制为 config.json 并填好密码。",
+  "nga": {
+    "board_url": "https://ngabbs.com/thread.php?stid=47206901",
+    "board_pages": 2,
+    "login_url": "https://ngabbs.com/nuke/account_copy.html?login",
+    "username": "",
+    "password": ""
+  },
+  "wolf_house": {
+    "_note": "狼楼：楼主'啊狼'(uid 150058)。max_pages 为抓取的尾页数（当天发言量大）。",
+    "tid": "47288722",
+    "max_pages": 15,
+    "owner_keywords": ["啊狼", "阿狼", "alang"]
+  },
+  "browser": {
+    "driver": "edge",
+    "headless": true,
+    "edge_binary": "",
+    "window_size": "1280,2400",
+    "page_load_timeout_sec": 30
+  },
+  "session": {
+    "cookies_path": "data/nga_cookies.json",
+    "cookie_ttl_days": 7
+  },
+  "output": {
+    "data_dir": "data",
+    "json_name": "nga_data.json",
+    "raw_html_name": "nga_board.html",
+    "save_raw_html": true
+  },
+  "sentiment": {
+    "_note": "标题情绪分类关键词规则。优先级：从上到下，先命中先归类；一个标题只归一类。",
+    "categories": {
+      "excitement": {
+        "label": "情绪兴奋",
+        "priority": 20,
+        "keywords": [
+          "起飞", "冲高", "涨停", "暴涨", "大肉", "梭哈", "满仓", "新高", "疯涨",
+          "狂拉", "猛", "吃肉", "赚麻", "发财", "牛市", "大涨", "爆发", "翻倍",
+          "直线拉升", "起飞了", "普涨", "红盘", "反攻", "突破"
+        ]
+      },
+      "showoff_gain": {
+        "label": "晒收益",
+        "priority": 15,
+        "keywords": [
+          "晒单", "晒收益", "收益", "盈利", "浮盈", "交割单", "赚了", "赚到",
+          "翻倍", "回本", "涨停了", "盈利了", "赚钱", "收获"
+        ]
+      },
+      "bullish": {
+        "label": "看多",
+        "priority": 10,
+        "keywords": [
+          "看多", "看涨", "做多", "买入", "加仓", "上车", "建仓", "重仓",
+          "逢低", "抄底", "补仓", "低吸", "布局", "机会", "看好", "做多",
+          "超配", "反转", "上攻", "冲", "买点", "黄金坑"
+        ]
+      },
+      "panic_sell": {
+        "label": "崩溃清仓",
+        "priority": 40,
+        "keywords": [
+          "崩溃", "清仓", "割肉", "血亏", "爆仓", "腰斩", "崩盘", "跌停",
+          "退市", "清仓跑路", "巨亏", "亏麻", "全仓亏", "归零", "套死"
+        ]
+      },
+      "worry_bear": {
+        "label": "担忧/看空",
+        "priority": 30,
+        "keywords": [
+          "担忧", "看空", "做空", "卖出", "减仓", "逃顶", "危险", "暴跌",
+          "跳水", "套牢", "利空", "恐慌", "崩", "跌", "下杀", "回调",
+          "出货", "凉了", "完蛋", "要完", "危险", "撤退", "止损"
+        ]
+      },
+      "anger_verified": {
+        "label": "本人愤怒(验证)",
+        "priority": 35,
+        "keywords": [
+          "草", "垃圾", "妈的", "操", "气死", "服了", "恶心", "废物",
+          "煞笔", "傻逼", "去死", "吐血", "辣鸡", "害人", "骗人", "割韭菜"
+        ]
+      }
+    },
+    "index_formula": {
+      "_note": "情绪指数计算。净分 = K * (提高-压低) / 新发帖数；指数分 = 50 + 净分 * A。图片反推：净分62.5→指数91.9，即 A≈2/3。",
+      "net_score_k": 1000.0,
+      "index_factor_a": 0.6667,
+      "level_thresholds": [
+        {"min": 50, "label": "极度狂热"},
+        {"min": 30, "label": "情绪高涨"},
+        {"min": 10, "label": "中性偏暖"},
+        {"min": -10, "label": "中性"},
+        {"min": -30, "label": "情绪低落"},
+        {"min": -99999, "label": "恐慌"}
+      ]
+    }
+  }
+}
