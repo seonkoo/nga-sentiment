@@ -171,18 +171,23 @@ function fmtTime(iso) {
 function escapeHtml(s) {
   return String(s || "").replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
-// "今日 X / 昨日 Y  +N (+%)" 同比；prev 缺则只显示 today
-function deltaHtml(now, prev, higherIsBad) {
+// "今日 X / 昨日 Y  +N (+%)" 同比；prev 缺/0/方向不显，则只显示 diff
+function deltaHtml(now, prev) {
   if (prev === undefined || prev === null) return "";
   const diff = now - prev;
   if (diff === 0) return '<span class="delta flat">±0</span>';
-  const pct = prev === 0 ? null : Math.round(diff / prev * 100);
-  const sign = diff > 0 ? "+" : "";
-  // higherIsBad 不用于反向：保留给情绪净分/指数这类"高=好/低=坏"的语义
-  // 这里简化：上升 up=红、下行 down=绿（与 A 股习惯一致）。如要看空类指标反转，可加 higherIsBad。
+  // prev 为 0 或方向不同（前正后负 / 前负后正），百分比无意义，只报绝对差
+  const sign = diff > 0 ? "+" : "−";   // 中文减号，视觉更清楚
+  const absDiff = Math.abs(diff).toString().replace(/^(-)?/, "");
+  let pctStr = "";
+  if (prev !== 0 && Math.sign(prev) === Math.sign(now)) {
+    const pct = Math.round(Math.abs(diff / prev) * 100);
+    pctStr = ` (${sign}${pct}%)`;
+  } else if (prev !== 0 && Math.sign(prev) !== Math.sign(now)) {
+    pctStr = ` (${diff > 0 ? "方向反转+" : "方向反转−"})`;
+  }
   const cls = diff > 0 ? "up" : "down";
-  const txt = pct === null ? `${sign}${diff}` : `${sign}${diff} (${sign}${pct}%)`;
-  return `<span class="delta ${cls}">${txt}</span>`;
+  return `<span class="delta ${cls}">${sign}${absDiff}${pctStr}</span>`;
 }
 
 // === 仪表盘（半圆凹底 + 渐变弧 + 大数字 + 等级） ===
