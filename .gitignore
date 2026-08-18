@@ -1,0 +1,11 @@
+# 凭据与本地调试产物（绝不提交）
+config.json
+data/nga_cookies.json
+data/nga_board.html
+data/nga_wolf_house.html
+data/nga_post_detail.html
+data/nga_thread_full.html
+__pycache__/
+*.pyc
+*.png
+*.html.tmp
