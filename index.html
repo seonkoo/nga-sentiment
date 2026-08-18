@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<title>NGA 股市情绪指数 · 手机看板</title>
+<style>
+  :root {
+    --bg: #0e1116;
+    --card: #181d26;
+    --card2: #1f2530;
+    --line: #2a313d;
+    --text: #e6e9ef;
+    --muted: #8b94a3;
+    --red: #ff4d4f;      /* 涨 / 看多 / 提高因素 */
+    --green: #1faa59;    /* 跌 / 看空 / 压低因素 */
+    --amber: #ffb020;
+    --blue: #4d8dff;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  body {
+    margin: 0; background: var(--bg); color: var(--text);
+    font: 15px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    padding: env(safe-area-inset-top) 12px calc(24px + env(safe-area-inset-bottom));
+  }
+  .wrap { max-width: 560px; margin: 0 auto; }
+  header { padding: 16px 4px 8px; }
+  header h1 { font-size: 19px; margin: 0 0 4px; font-weight: 700; }
+  header .sub { color: var(--muted); font-size: 12px; }
+  .card {
+    background: var(--card); border: 1px solid var(--line); border-radius: 14px;
+    padding: 14px; margin: 12px 0;
+  }
+  .card h2 { font-size: 15px; margin: 0 0 12px; display: flex; align-items: center; gap: 8px; }
+  .card h2 .tag { font-size: 11px; color: var(--muted); font-weight: 400; }
+  /* 指数大数字 */
+  .idx-row { display: flex; align-items: center; gap: 16px; }
+  .idx-score { font-size: 52px; font-weight: 800; line-height: 1; }
+  .idx-meta { flex: 1; }
+  .level-badge {
+    display: inline-block; padding: 4px 12px; border-radius: 999px; font-weight: 700; font-size: 14px;
+    background: rgba(255,77,79,.15); color: var(--red); border: 1px solid rgba(255,77,79,.4);
+  }
+  .idx-net { color: var(--muted); font-size: 13px; margin-top: 6px; }
+  /* 饼图 */
+  .donut-wrap { display: flex; align-items: center; gap: 14px; margin-top: 10px; }
+  .legend { flex: 1; font-size: 13px; }
+  .legend .row { display: flex; align-items: center; gap: 8px; margin: 4px 0; }
+  .legend .dot { width: 10px; height: 10px; border-radius: 3px; flex: none; }
+  .legend .nm { flex: 1; color: var(--muted); }
+  .legend .vl { font-weight: 600; }
+  /* 指标卡 */
+  .metrics { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .metric { background: var(--card2); border-radius: 10px; padding: 10px 12px; }
+  .metric .k { color: var(--muted); font-size: 12px; }
+  .metric .v { font-size: 22px; font-weight: 700; margin-top: 2px; }
+  .v.red { color: var(--red); } .v.green { color: var(--green); }
+  /* 帖子列表 */
+  .post { padding: 9px 0; border-bottom: 1px solid var(--line); }
+  .post:last-child { border-bottom: none; }
+  .post .t { font-size: 14px; }
+  .cat {
+    display: inline-block; font-size: 11px; padding: 1px 7px; border-radius: 6px; margin-right: 6px; vertical-align: middle;
+  }
+  .cat-excitement { background: rgba(255,77,79,.18); color: var(--red); }
+  .cat-showoff_gain { background: rgba(255,176,32,.18); color: var(--amber); }
+  .cat-bullish { background: rgba(255,77,79,.12); color: #ff8587; }
+  .cat-panic_sell { background: rgba(31,170,89,.18); color: var(--green); }
+  .cat-worry_bear { background: rgba(31,170,89,.12); color: #5fd49a; }
+  .cat-anger_verified { background: rgba(77,141,255,.18); color: var(--blue); }
+  /* 狼楼风向条 */
+  .bar-row { display: flex; align-items: center; gap: 8px; margin: 6px 0; font-size: 13px; }
+  .bar-row .lab { width: 44px; color: var(--muted); flex: none; }
+  .bar { flex: 1; height: 18px; background: var(--card2); border-radius: 5px; overflow: hidden; position: relative; }
+  .bar > span { position: absolute; left: 0; top: 0; height: 100%; border-radius: 5px; }
+  .bar .cnt { position: absolute; right: 8px; top: 0; line-height: 18px; font-size: 12px; color: var(--text); }
+  .bull > span { background: var(--red); }
+  .bear > span { background: var(--green); }
+  .neutral > span { background: var(--muted); }
+  /* 楼主高亮 */
+  .owner-card { background: linear-gradient(135deg, rgba(255,176,32,.12), rgba(255,77,79,.08)); border: 1px solid rgba(255,176,32,.35); }
+  .owner-card h2 { color: var(--amber); }
+  .owner-post { background: var(--card2); border-radius: 10px; padding: 10px 12px; margin: 8px 0; }
+  .owner-post .hd { display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); margin-bottom: 4px; }
+  .owner-post .ct { font-size: 14px; white-space: pre-wrap; word-break: break-word; }
+  .pill { font-size: 11px; padding: 1px 8px; border-radius: 999px; }
+  .pill-bull { background: rgba(255,77,79,.18); color: var(--red); }
+  .pill-bear { background: rgba(31,170,89,.18); color: var(--green); }
+  .pill-neutral { background: rgba(139,148,163,.2); color: var(--muted); }
+  .kw { display: inline-block; font-size: 12px; background: var(--card2); border: 1px solid var(--line); border-radius: 6px; padding: 3px 9px; margin: 3px 4px 0 0; color: var(--muted); }
+  .kw b { color: var(--text); }
+  .err { color: var(--red); font-size: 13px; padding: 20px; text-align: center; }
+  footer { color: var(--muted); font-size: 11px; text-align: center; padding: 16px 0 4px; }
+  a { color: var(--blue); text-decoration: none; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>🐺 NGA 股市情绪指数</h1>
+    <div class="sub" id="updated">加载中…</div>
+  </header>
+
+  <div id="app">
+    <div class="card"><div class="err">正在读取数据…</div></div>
+  </div>
+
+  <footer>
+    数据来源：NGA [股市]技术分析 板块 + 狼楼（楼主·啊狼）<br/>
+    情绪分类为关键词启发式统计，非投资建议 · 每日 08:00 / 12:00 / 18:00 / 22:00 自动更新
+  </footer>
+</div>
+
+<script>
+const CAT_LABEL = {
+  excitement: "情绪兴奋", showoff_gain: "晒收益", bullish: "看多",
+  panic_sell: "崩溃清仓", worry_bear: "担忧/看空", anger_verified: "本人愤怒"
+};
+const CAT_COLOR = {
+  excitement: "#ff4d4f", showoff_gain: "#ffb020", bullish: "#ff8587",
+  panic_sell: "#1faa59", worry_bear: "#5fd49a", anger_verified: "#4d8dff"
+};
+
+function el(html) { const d = document.createElement("div"); d.innerHTML = html.trim(); return d.firstChild; }
+function fmtTime(iso) {
+  if (!iso) return "";
+  const d = new Date(iso);
+  if (isNaN(d)) return iso;
+  const p = n => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`;
+}
+
+function renderBoard(b) {
+  const m = b.metrics, ix = b.index, pie = b.pie;
+  const scoreColor = ix.index_score >= 50 ? "var(--red)" : "var(--green)";
+  // 饼图（SVG 环形）
+  const segs = [
+    ["excitement","excitement"], ["showoff_gain","showoff_gain"], ["bullish","bullish"],
+    ["panic_sell","panic_sell"], ["worry_bear","worry_bear"], ["anger_verified","anger_verified"]
+  ].filter(([k]) => pie[k] > 0);
+  const total = segs.reduce((s,[k]) => s + pie[k], 0) || 1;
+  let acc = 0; const R = 42, C = 2 * Math.PI * R;
+  let rings = "";
+  segs.forEach(([k]) => {
+    const frac = pie[k] / total;
+    const len = frac * C;
+    rings += `<circle cx="50" cy="50" r="${R}" fill="none" stroke="${CAT_COLOR[k]}" stroke-width="14"
+      stroke-dasharray="${len} ${C-len}" stroke-dashoffset="${-acc}" transform="rotate(-90 50 50)"/>`;
+    acc += len;
+  });
+  const legend = segs.map(([k]) =>
+    `<div class="row"><span class="dot" style="background:${CAT_COLOR[k]}"></span>
+     <span class="nm">${CAT_LABEL[k]}</span><span class="vl">${pie[k]}%</span></div>`).join("");
+
+  const card = el(`
+    <div class="card">
+      <h2>板块情绪指数 <span class="tag">[股市]技术分析 · 当日新帖</span></h2>
+      <div class="idx-row">
+        <div class="idx-score" style="color:${scoreColor}">${ix.index_score}</div>
+        <div class="idx-meta">
+          <span class="level-badge">${ix.level}</span>
+          <div class="idx-net">情绪净分 ${ix.net_score > 0 ? "+" : ""}${ix.net_score} ｜ 提高 ${m.bullish_total} · 压低 ${m.bearish_total}</div>
+        </div>
+      </div>
+      <div class="donut-wrap">
+        <svg width="100" height="100" viewBox="0 0 100 100">${rings}</svg>
+        <div class="legend">${legend}</div>
+      </div>
+      <div class="metrics" style="margin-top:12px">
+        <div class="metric"><div class="k">今日新发帖</div><div class="v">${m.today_new_posts}</div></div>
+        <div class="metric"><div class="k">今日总回复</div><div class="v">${m.today_total_replies}</div></div>
+        <div class="metric"><div class="k">提高因素</div><div class="v red">${m.bullish_total}<span style="font-size:12px;color:var(--muted)"> 兴奋${m.excitement}/晒${m.showoff_gain}/多${m.bullish}</span></div></div>
+        <div class="metric"><div class="k">压低因素</div><div class="v green">${m.bearish_total}<span style="font-size:12px;color:var(--muted)"> 崩${m.panic_sell}/忧${m.worry_bear}/怒${m.anger_verified}</span></div></div>
+      </div>
+      ${b.classified_posts && b.classified_posts.length ? `
+      <div style="margin-top:12px">
+        <div class="k" style="color:var(--muted);font-size:12px;margin-bottom:6px">带情绪标签的帖子（${b.classified_posts.length}）</div>
+        ${b.classified_posts.slice(0, 12).map(p => `
+          <div class="post">
+            <span class="cat cat-${p.category}">${CAT_LABEL[p.category]||p.category}</span>
+            <span class="t">${escapeHtml(p.title)}</span>
+          </div>`).join("")}
+      </div>` : ""}
+    </div>`);
+  return card;
+}
+
+function renderWolf(w) {
+  const ds = w.direction_stats, os = w.owner_direction_stats;
+  const sum = (ds.bull + ds.bear + ds.neutral) || 1;
+  const bar = (cls, lab, n) => `
+    <div class="bar-row"><span class="lab">${lab}</span>
+      <div class="bar ${cls}"><span style="width:${(n/sum*100).toFixed(1)}%"></span><span class="cnt">${n}</span></div></div>`;
+
+  const ownerPosts = (w.owner_posts || []).map(p => `
+    <div class="owner-post">
+      <div class="hd"><span>${escapeHtml(p.author || "楼主")} · ${fmtTime(p.time)}</span>
+        <span class="pill pill-${p.direction}">${p.direction==="bull"?"看多":p.direction==="bear"?"看空":"中性"}</span></div>
+      <div class="ct">${escapeHtml(p.content).slice(0, 300)}</div>
+    </div>`).join("") || `<div style="color:var(--muted);font-size:13px;padding:6px 0">今日楼主暂无发言记录</div>`;
+
+  const kws = (w.top_keywords || []).map(([k,c]) => `<span class="kw"><b>${k}</b> ×${c}</span>`).join("");
+  const okws = (w.owner_top_keywords || []).map(([k,c]) => `<span class="kw"><b>${k}</b> ×${c}</span>`).join("") || `<span style="color:var(--muted);font-size:12px">—</span>`;
+
+  return el(`
+    <div class="card owner-card">
+      <h2>🐺 狼楼风向 · 楼主「啊狼」</h2>
+      <div class="idx-net" style="margin-bottom:8px">今日发言 ${w.today_replies} 楼 ｜ 看多 ${ds.bull} / 看空 ${ds.bear} / 中性 ${ds.neutral}</div>
+      ${bar("bull","看多",ds.bull)}${bar("bear","看空",ds.bear)}${bar("neutral","中性",ds.neutral)}
+
+      <div style="margin-top:14px;font-weight:700;color:var(--amber)">楼主「啊狼」今日发言（${w.owner_posts?.length||0} 条）</div>
+      <div style="margin-top:6px">看多 ${os.bull} / 看空 ${os.bear} / 中性 ${os.neutral}</div>
+      ${ownerPosts}
+
+      <div style="margin-top:14px;font-weight:600">全楼热词</div>
+      <div style="margin-top:4px">${kws}</div>
+      <div style="margin-top:10px;font-weight:600;color:var(--amber)">楼主热词</div>
+      <div style="margin-top:4px">${okws}</div>
+    </div>`);
+}
+
+function escapeHtml(s) {
+  return String(s || "").replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+// 采用 JSONP-like 模式：用 <script src> 代替 fetch()，
+// 这样 file:// 双击打开也能加载（浏览器对 file:// 下的 fetch 默认禁用）。
+// 数据由 analyze.py 同时写出 data/nga_data.json 和 data/nga_data.js。
+function loadData() {
+  return new Promise((resolve, reject) => {
+    if (window.NGA_DATA) { resolve(window.NGA_DATA); return; }
+    const s = document.createElement("script");
+    s.src = "./data/nga_data.js?v=" + Date.now();
+    s.onload = () => window.NGA_DATA ? resolve(window.NGA_DATA) : reject(new Error("nga_data.js 未设置 window.NGA_DATA"));
+    s.onerror = () => reject(new Error("无法加载 data/nga_data.js（确认文件存在于 data/ 下）"));
+    document.head.appendChild(s);
+  });
+}
+
+async function main() {
+  const app = document.getElementById("app");
+  const upd = document.getElementById("updated");
+  try {
+    const d = await loadData();
+    const b = d.board, w = d.wolf_house;
+    upd.textContent = `更新于 ${fmtTime(b.generated_at)} ｜ ${b.date}`;
+    app.innerHTML = "";
+    app.appendChild(renderBoard(b));
+    app.appendChild(renderWolf(w));
+  } catch (e) {
+    app.innerHTML = "";
+    app.appendChild(el(`<div class="card"><div class="err">数据加载失败：${escapeHtml(e.message)}<br/>请稍后刷新，或检查 data/nga_data.js 是否存在。</div></div>`));
+    upd.textContent = "加载失败";
+  }
+}
+main();
+</script>
+</body>
+</html>
