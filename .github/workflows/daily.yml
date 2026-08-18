@@ -1,0 +1,65 @@
+name: NGA 情绪指数每日更新
+
+on:
+  schedule:
+    # 北京时间 08:00 / 12:00 / 18:00 / 22:00 → UTC 0 / 4 / 10 / 14 时
+    - cron: "0 0,4,10,14 * * *"
+  workflow_dispatch:   # 手动立即触发，便于验证
+
+# 防并发：手动触发若与定时重叠，排队而非竞速（避免 rejected main）
+concurrency:
+  group: nga-daily
+  cancel-in-progress: false
+
+permissions:
+  contents: write   # 提交 data/nga_data.json
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install Microsoft Edge (Linux) + 依赖库
+        run: |
+          curl -fsSL https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor -o /usr/share/keyrings/microsoft-edge.gpg
+          echo "deb [arch=amd64 signed-by=/usr/share/keyrings/microsoft-edge.gpg] https://packages.microsoft.com/repos/edge stable main" | tee /etc/apt/sources.list.d/microsoft-edge.list
+          sudo apt-get update
+          sudo apt-get install -y microsoft-edge-stable \
+            libnss3 libatk-bridge2.0-0 libgtk-3-0 libgbm1 libasound2 libxshmfence1
+
+      - name: Install Python deps
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Prepare config (用 secret 注入账号密码)
+        run: cp config.example.json config.json
+        env:
+          NGA_USER: ${{ secrets.NGA_USER }}
+          NGA_PASS: ${{ secrets.NGA_PASS }}
+
+      - name: Run analyze.py (登录 NGA → 抓板块+狼楼 → 写 data/nga_data.json)
+        env:
+          NGA_USER: ${{ secrets.NGA_USER }}
+          NGA_PASS: ${{ secrets.NGA_PASS }}
+        run: python analyze.py
+
+      - name: Commit & push data
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data/nga_data.json data/nga_data.js
+          if git diff --cached --quiet; then
+            echo "无变化，跳过提交"
+          else
+            git commit -m "chore: 更新 NGA 情绪数据 $(date -u +'%Y-%m-%dT%H:%M:%SZ')"
+            git push
+          fi
