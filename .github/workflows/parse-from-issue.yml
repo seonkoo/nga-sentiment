@@ -1,0 +1,112 @@
+name: Parse Sentiment from Issue
+on:
+  issues:
+    types: [opened]
+permissions:
+  contents: write
+  issues: write
+jobs:
+  parse:
+    if: contains(github.event.issue.title, '情绪指数')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: 解析正文 → 写 data
+        env:
+          ISSUE_BODY: ${{ github.event.issue.body }}
+        run: |
+          python - <<'PY'
+          import json, os, re
+          from pathlib import Path
+          ROOT = Path.cwd()
+          DATA_DIR = ROOT / "data"
+          RE = {
+              "index":    r"final\s*=\s*[\s\S]*?=\s*(\d{1,3}\.\d)\b",
+              "excited":  r"情绪兴奋\s*[=＝]?\s*(\d+)",
+              "joy":      r"晒收益\s*[=＝]?\s*(\d+)",
+              "bull":     r"看多\s*[=＝]?\s*(\d+)",
+              "collapse":  r"崩溃\s*[=＝]?\s*(\d+)",
+              "worried":  r"担忧[/／]看空\s*[=＝]?\s*(\d+)",
+              "angry":    r"本人愤怒\s*[=＝]?\s*(\d+)",
+              "new":      r"今日新发帖\s*(\d+)",
+              "yest":     r"较上一日\s*\(?\s*(\d+)",
+              "chg":      r"变化约\s*(\d+)\s*%",
+              "act":      r"达\s*(\d+)\s*条基准线",
+              "reply":    r"总回复\s*(\d+)",
+              "up":       r"提高\s*[=＝]\s*(\d+)",
+              "down":     r"压低\s*[=＝]\s*(\d+)",
+              "net":      r"情绪净分[（(]E\s*[-−]\s*A[)）]\s*[=＝]?\s*(\d+\.?\d*)",
+          }
+          LEVELS = [(0,20,"极度恐慌","#3b6fb0"),(20,35,"恐慌低落","#4caf7a"),
+                    (35,50,"情绪低落","#9ccc65"),(50,65,"中性偏暖","#d4c54a"),
+                    (65,80,"情绪高涨","#e89045"),(80,101,"极度狂热","#e64c4c")]
+          def classify(i):
+              for lo,hi,n,c in LEVELS:
+                  if lo<=i<hi: return n,c
+              return "极度狂热","#e64c4c"
+          def grab(t,k,cast=float,d=0):
+              m=re.search(RE[k],t)
+              if not m: return d
+              try: return cast(m.group(1))
+              except: return d
+          def parse_text(t,date=""):
+              idx=grab(t,"index",float,0.0)
+              name,col=classify(idx)
+              m=re.search(r"(\d{4}-\d{2}-\d{2})",t); date=date or (m.group(1) if m else "")
+              m=re.search(r"(散户情绪[一-龥]{0,6}[，,][一-龥、]{2,12})",t); slogan=m.group(1)[:30] if m else ""
+              m=re.search(r"final\s*=\s*\(?base\s*\+\s*提高加成\s*-\s*压低惩罚\)?\s*×\s*\(0\.8\s*\+\s*0\.2×活跃度\)\s*=\s*\d+\.\d",t)
+              formula=m.group(0) if m else ""
+              m=re.search(r"(放量活跃区间|缩量观望|放量高潮|活跃度低)[一-龥、]{0,8}",t); zone=m.group(0) if m else ""
+              return {"date":date,"weekday":"","is_trading_day":True,
+                      "title":f"NGA 散户情绪指数 · {date}","post_url":"",
+                      "sentiment_index":round(idx,1),"sentiment_level":name,"sentiment_color":col,
+                      "slogan":slogan,"formula":formula,"new_posts":int(grab(t,"new",int,0)),
+                      "new_posts_yesterday":int(grab(t,"yest",int,0)),"change_pct":grab(t,"chg",float,0.0),
+                      "active_ratio":grab(t,"act",float,0.0),"active_zone":zone,
+                      "total_replies":int(grab(t,"reply",int,0)),"up_total":int(grab(t,"up",int,0)),
+                      "down_total":int(grab(t,"down",int,0)),"net_score":grab(t,"net",float,0.0),
+                      "cnt_excited":int(grab(t,"excited",int,0)),"cnt_joy_profit":int(grab(t,"joy",int,0)),
+                      "cnt_bullish":int(grab(t,"bull",int,0)),"cnt_collapse":int(grab(t,"collapse",int,0)),
+                      "cnt_worried_short":int(grab(t,"worried",int,0)),"cnt_self_angry":int(grab(t,"angry",int,0)),
+                      "posts":[]}
+          def write_outputs(rep):
+              DATA_DIR.mkdir(exist_ok=True)
+              (DATA_DIR/"latest.json").write_text(json.dumps(rep,ensure_ascii=False,indent=2),encoding="utf-8")
+              hp=DATA_DIR/"history.json"; hist=[]
+              if hp.exists():
+                  try: hist=json.loads(hp.read_text(encoding="utf-8"))
+                  except: hist=[]
+              hist=[h for h in hist if h.get("date")!=rep["date"]]
+              hist.append({"date":rep["date"],"weekday":rep["weekday"],"sentiment_index":rep["sentiment_index"],
+                           "sentiment_level":rep["sentiment_level"],"sentiment_color":rep["sentiment_color"],
+                           "new_posts":rep["new_posts"],"up_total":rep["up_total"],"down_total":rep["down_total"],
+                           "net_score":rep["net_score"]})
+              hist.sort(key=lambda x:x["date"])
+              hp.write_text(json.dumps(hist,ensure_ascii=False,indent=2),encoding="utf-8")
+              print(f"✅ {rep['date']} 指数 {rep['sentiment_index']} {rep['sentiment_level']} | 历史 {len(hist)} 期")
+          text=os.environ.get("ISSUE_BODY","")
+          if not text.strip():
+              print("⚠ 空输入"); raise SystemExit(1)
+          write_outputs(parse_text(text))
+          PY
+      - name: 提交并触发 Pages 更新
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data
+          git commit -m "sentiment update from issue #${{ github.event.issue.number }}" || echo "no changes"
+          git push
+      - name: 回评论
+        if: success()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: '✅ 已解析并推送，手机刷新 seonkoo.github.io/nga-sentiment 即可看到更新。'
+            })
