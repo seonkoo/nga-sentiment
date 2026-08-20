@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<title>狼大发言 · 智谱解读</title>
+<style>
+  :root { --bg:#0e1116; --card:#181d26; --line:#2a313d; --text:#e6e9ef; --muted:#8b94a3;
+          --red:#ff4d4f; --green:#1faa59; --amber:#ffb020; --blue:#4d8dff; }
+  * { box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  body { margin:0; background:var(--bg); color:var(--text); font:15px/1.6 -apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif; padding:env(safe-area-inset-top) 12px calc(24px + env(safe-area-inset-bottom)); }
+  .wrap { max-width:560px; margin:0 auto; }
+  header { padding:16px 4px 8px; }
+  header h1 { font-size:19px; margin:0 0 4px; font-weight:700; }
+  header .sub { color:var(--muted); font-size:12px; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:14px; padding:14px; margin:12px 0; }
+  .card h2 { font-size:15px; margin:0 0 10px; display:flex; align-items:center; gap:8px; }
+  .card h2 .tag { font-size:11px; color:var(--muted); font-weight:400; }
+  .kv { padding:8px 0; border-bottom:1px dashed var(--line); font-size:14px; }
+  .kv:last-child { border-bottom:none; }
+  .kv .k { color:var(--muted); display:block; margin-bottom:3px; }
+  .kv .v { white-space:pre-wrap; word-break:break-word; }
+  .pill { display:inline-block; font-size:11px; padding:1px 8px; border-radius:999px; margin-left:6px; }
+  .pill-bull { background:rgba(255,77,79,.18); color:var(--red); }
+  .pill-bear { background:rgba(31,170,89,.18); color:var(--green); }
+  .pill-neutral { background:rgba(139,148,163,.2); color:var(--muted); }
+  .post { padding:10px 0; border-bottom:1px solid var(--line); }
+  .post:last-child { border-bottom:none; }
+  .post .h { font-size:13px; color:var(--muted); margin-bottom:4px; }
+  .post .c { white-space:pre-wrap; word-break:break-word; font-size:14px; }
+  .disclaim { font-size:11px; color:var(--muted); margin-top:8px; }
+  footer { color:var(--muted); font-size:11px; text-align:center; padding:16px 0 4px; }
+  a { color:var(--blue); text-decoration:none; }
+  .err { color:var(--red); font-size:13px; padding:20px; text-align:center; }
+  .copy-btn { display:inline-block; background:var(--amber); color:#1a1a1a; border:none; border-radius:8px; padding:9px 14px; font-size:13px; font-weight:700; cursor:pointer; }
+</style>
+<script>
+/* 内嵌数据: build_standalone.py 生成, 更新数据请重跑 */
+const EMBED_POSTS = {
+  "tid": "47288722",
+  "url": "https://ngabbs.com/read.php?tid=47288722&authorid=150058",
+  "fetched_at": "2026-08-21 06:48:49",
+  "owner": "啊狼",
+  "owner_uid": 150058,
+  "posts": [
+    {
+      "idx": 0,
+      "uid": 150058,
+      "subject": "自立自强，科学技术打头阵----救赎版",
+      "content": "因为有时候鱼饵的帖子会莫名消失，完全没有预兆的那种\n我看我还是自己发个帖子吧\n之前的记录没有了，但是也不重要了，接下来每天都是新的一天\n不愿意看的就不要看 ，想看两厌不如不看\n\n我的操作跟着我的策略走，我的策略跟着市场走，不唯心\n低位看逻辑，高位看量价\n在保证个股基本面没问题的同时严格以技术策略去操作执行是我的保命策略。\n\n接下来的日子可能我不会经常出来说太多，看情况吧。"
+    },
+    {
+      "idx": 1,
+      "uid": 150058,
+      "subject": "",
+      "content": "首先我一定要纠正一下大家的说法，这段绝对不是上面砸的\n相反，ZC底出来的同时上面并不是空喊口号，虽然之前卖了很多，但是整个7月上面应该是净流入各类宽基在4500E以上\n特别是沪深300这种，如果没有上面的护盘，大光不可能跌那么少以及那么慢\n那些没护盘的光纤和存储就是例子。\n滚雪球式的踩踏，不管是15年后还是21年 都是经验。你们可以自己比对一下，这波下杀行情不逊于当时的。\n\n上面既然出了ZC底，这里也真金白银保了，最多也就是钱不够，只保而已，哪怕是延缓下跌也是好的。\n剩下的都是市场行为，是大家的信心问题。"
+    },
+    {
+      "idx": 2,
+      "uid": 150058,
+      "subject": "",
+      "content": "+R by  [wangmg5004] (2026-07-31 15:22)"
+    },
+    {
+      "idx": 3,
+      "uid": 150058,
+      "subject": "",
+      "content": "然后关于最近GJD的做法 我编辑在一楼了 \n我只能和大家说，这段不要怪错人了  不要乱立靶子 实事求是。\n他有问题我们一起说  他没问题就不要乱开枪。\n\n不利于团结的话少说。"
+    },
+    {
+      "idx": 4,
+      "uid": 150058,
+      "subject": "",
+      "content": "之前高点被套下来的科技仓位大部分都在30%以上了，不过这至少分散在一个月内，但是最杀人诛心的是上周5高开追进去的那些资金\n如果弄不好 到周一 2天不见20%应该是有的\n在怎么坚持基本面的科技人应该都快崩溃了吧\n\n现在说什么都晚了，在这段行情之前我已经分享了很多给大家。并且给了很多我保命的策略\n我不知道大家用了没，而且刚好我在那段时间比较忙，虽然我的低位也受到了损失，但是至少大仓位的收益都保住了\n而我回来之后也和大家说了具体浪型和我的具体应对\n然后我也看到了一些私信，都想找一个救世主，想这种行情还能带他回本甚至挣钱的人\n\n噢 不是\n那是神\n\n我不想给大家这种虚无缥缈的幻想，我只能告诉大家这个市场非常难，我一直都很小心，哪怕最挣钱的时候我也没有过狂妄自大  你们做过实业就懂了，在这个市场里最白痴的就是狂妄自大的人。\n钱是挣不完的 ，但是能亏完。\n哪怕之后有反弹，我就是提前告诉你后面几个月有反弹，但是你没有本金了啊，你没钱拿什么反弹。\n\n我到现在也一直和大家说，高位不要再看基本面逻辑，只看纯技术图形量价关系，这是血汗泪的经验教训\n周末人也少了，希望大家冷静想想，自己到底是什么样的人，能不能在这个市场里面挣钱取决于你对自己的认知。这也是我之前说过很多的。"
+    },
+    {
+      "idx": 5,
+      "uid": 150058,
+      "subject": "",
+      "content": "半导体被追着杀。\n我周末的预判基本已经走出来了。"
+    },
+    {
+      "idx": 6,
+      "uid": 150058,
+      "subject": "",
+      "content": "+R by  [椰果奶茶配椰果] (2026-08-03 10:34)"
+    },
+    {
+      "idx": 7,
+      "uid": 150058,
+      "subject": "",
+      "content": "+R by  [huohuo277] (2026-08-03 10:37)"
+    },
+    {
+      "idx": 8,
+      "uid": 150058,
+      "subject": "",
+      "content": "ZSBD"
+    },
+    {
+      "idx": 9,
+      "uid": 150058,
+      "subject": "",
+      "content": "+R by  [slmjt] (2026-08-03 10:43)"
+    },
+    {
+      "idx": 10,
+      "uid": 150058,
+      "subject": "",
+      "content": "+R by  [野比大次郎二号机] (2026-08-03 10:47)"
+    },
+    {
+      "idx": 11,
+      "uid": 150058,
+      "subject": "",
+      "content": "+R by  [暮暮朝朝6] (2026-08-03 10:57)"
+    },
+    {
+      "idx": 12,
+      "uid": 150058,
+      "subject": "",
+      "content": "今天缩大量拉的银行是纯骗\n四大行是跌的。\n这里银行走出的诱多的走势，这种情况我之前只在题材里面看见过 从来没有在银行这个板块见过。"
+    },
+    {
+      "idx": 13,
+      "uid": 150058,
+      "subject": "",
+      "content": "+R by  [暮暮朝朝6] (2026-08-03 11:15)"
+    },
+    {
+      "idx": 14,
+      "uid": 150058,
+      "subject": "",
+      "content": "+R by  [Rzzz二号机] (2026-08-03 11:21)"
+    },
+    {
+      "idx": 15,
+      "uid": 150058,
+      "subject": "",
+      "content": "+R by  [Rzzz二号机] (2026-08-03 11:27)"
+    },
+    {
+      "idx": 16,
+      "uid": 150058,
+      "subject": "",
+      "content": "大家都想等破3800然后出个恐慌盘  好去吃血筹\n结果大家都不卖的同时还有上面偶尔出笔小单子兜底  这位置就很难干净的破下去 \n继续磨到散户崩溃吧。\n其实越快破越好 ，只不过这里心不齐了  最多不操作  等着 ，但是叫人主动砸不可能了。"
+    },
+    {
+      "idx": 17,
+      "uid": 150058,
+      "subject": "",
+      "content": "+R by  [未成年面B] (2026-08-03 13:27)"
+    },
+    {
+      "idx": 18,
+      "uid": 150058,
+      "subject": "",
+      "content": "+R by  [泰山派二师兄] (2026-08-03 13:39)"
+    },
+    {
+      "idx": 19,
+      "uid": 150058,
+      "subject": "",
+      "content": "一天了  终于看见科技有点割肉盘口了"
+    }
+  ]
+};
+const EMBED_ANALYSIS = {
+  "tid": "47288722",
+  "owner": "啊狼",
+  "fetched_at": "2026-08-21 06:48:49",
+  "analyzed_at": "2026-08-21 06:51:47",
+  "ai_enabled": true,
+  "model": "glm-4-flash",
+  "analysis": {
+    "core_view": "看多/看空: 看空；逻辑: 半导体行业被追杀，银行板块出现诱多走势，市场情绪不齐，散户难以崩溃，科技板块出现割肉盘口",
+    "bias": {
+      "bias": "bear",
+      "confidence": 0.8
+    },
+    "strategy": "操作策略: 结合蓝筹长线，低吸分批，关注科技板块的割肉盘口，具体价位区间需根据市场动态调整",
+    "risk": "风险提示: 银行板块的诱多走势可能存在风险，市场情绪的不齐可能导致操作难度增加",
+    "disclaimer": "内容为 AI 基于发言的归纳，非投资建议"
+  }
+};
+</script>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>🐺 狼大发言 · 智谱解读</h1>
+    <div class="sub" id="updated">加载中…</div>
+  </header>
+  <div id="app"><div class="card"><div class="err">正在读取数据…</div></div></div>
+  <footer>
+    数据采集：NGA 狼楼（楼主·啊狼）游客模式 headless 抓取<br/>
+    AI 解读：智谱 GLM · 仅供参考，非投资建议<br/>
+    <a href="./">← 返回板块看板</a>
+  </footer>
+</div>
+
+<script>
+async function getJSON(u) {
+  const r = await fetch(u + "?v=" + Date.now());
+  if (!r.ok) throw new Error(u + " " + r.status);
+  return r.json();
+}
+function esc(s){ return String(s||"").replace(/[&<>"']/g, c=>({'&':'&amp;','<':'<','>':'>','"':'&quot;',"'":'&#39;'}[c])); }
+function biasPill(b){
+  if (b === "bull") return '<span class="pill pill-bull">看多</span>';
+  if (b === "bear") return '<span class="pill pill-bear">看空</span>';
+  return '<span class="pill pill-neutral">中性</span>';
+}
+function renderAnalysis(a){
+  if (!a) return "";
+  const kv = (k,v) => `<div class="kv"><span class="k">${k}</span><span class="v">${esc(v)}</span></div>`;
+  const b = a.bias || {};
+  return `
+  <div class="card">
+    <h2>🤖 智谱解读 <span class="tag">${a.disclaimer ? "AI 归纳" : ""}</span></h2>
+    ${kv("核心观点", a.core_view)}
+    ${kv("多空倾向", (b.bias||"") + (b.confidence!==undefined ? "（置信度 " + b.confidence + "）" : "") + biasPill(b.bias))}
+    ${kv("操作策略", a.strategy)}
+    ${kv("风险提示", a.risk)}
+    ${a.disclaimer ? `<div class="disclaim">${esc(a.disclaimer)}</div>` : ""}
+  </div>`;
+}
+function renderPosts(d){
+  const posts = (d.posts||[]).slice().reverse();
+  const items = posts.map((p,i) => `
+    <div class="post">
+      <div class="h">#${posts.length-i} ${esc(p.subject||"（无标题）")}</div>
+      <div class="c">${esc(p.content)}</div>
+    </div>`).join("");
+  return `
+  <div class="card">
+    <h2>🐺 啊狼发言合集 <span class="tag">${posts.length} 条（新→旧）</span></h2>
+    ${items || '<div class="err">暂无发言</div>'}
+    <div style="margin-top:12px"><button class="copy-btn" id="copyAll">📋 复制全部发言</button> <button class="copy-btn" id="dlTxt">⬇️ 下载 TXT</button></div>
+  </div>`;
+}
+async function main(){
+  const app = document.getElementById("app");
+  const upd = document.getElementById("updated");
+  try {
+    const posts = EMBED_POSTS || null;
+    const ana = EMBED_ANALYSIS || null;
+    if (!posts) throw new Error("wolf_posts.json 缺失，请先跑 wolf_fetch.py");
+    upd.textContent = `采集于 ${posts.fetched_at||""} ｜ ${posts.posts?.length||0} 条发言`
+      + (ana && ana.analyzed_at ? ` ｜ 解读于 ${ana.analyzed_at}` : " ｜ 未启用智谱");
+    let html = "";
+    if (ana && ana.analysis) html += renderAnalysis(ana.analysis);
+    else if (ana && ana.note) html += `<div class="card"><div class="err">${esc(ana.note)}</div></div>`;
+    html += renderPosts(posts);
+    app.innerHTML = html;
+    const btn = document.getElementById("copyAll");
+    if (btn) btn.onclick = async () => {
+      const txt = (posts.posts||[]).map((p,i)=>`【${i+1}】${p.subject||""}\n${p.content}`).join("\n\n");
+      try { await navigator.clipboard.writeText(txt); btn.textContent = "已复制 ✅"; }
+      catch { btn.textContent = "复制失败，请长按选择"; }
+    };
+  } catch(e){
+    app.innerHTML = `<div class="card"><div class="err">加载失败：${esc(e.message)}</div></div>`;
+    upd.textContent = "加载失败";
+  }
+}
+main();
+
+    const dl = document.getElementById("dlTxt");
+    if (dl) dl.onclick = () => {
+      const lines = [];
+      lines.push("NGA 狼大发言合集");
+      lines.push("来源: " + (posts.url||""));
+      lines.push("采集: " + (posts.fetched_at||"") + " | 共 " + (posts.posts?.length||0) + " 条");
+      lines.push("==============================================");
+      (posts.posts||[]).forEach((p,i) => {
+        lines.push("【" + (i+1) + "】" + (p.subject||""));
+        lines.push(p.content);
+        lines.push("");
+        lines.push("----------------------------------------------");
+        lines.push("");
+      });
+      const blob = new Blob([lines.join("\n")], {type:"text/plain;charset=utf-8"});
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = "wolf_posts.txt";
+      a.click();
+      URL.revokeObjectURL(a.href);
+      dl.textContent = "已导出 ✅";
+    };
+
+</script>
+</body>
+</html>
