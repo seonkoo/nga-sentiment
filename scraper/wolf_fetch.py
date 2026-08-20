@@ -109,6 +109,8 @@ def main():
     ap.add_argument("--tid", default=os.environ.get("WOLF_TID", DEFAULT_TID))
     ap.add_argument("--authorid", type=int, default=150058,
                     help="只看楼主参数(默认 150058=啊狼; 0=不过滤)")
+    ap.add_argument("--pages", type=int, default=0,
+                    help="抓取页数上限(0=自动检测, 连续2页无新增即停; 默认 0)")
     ap.add_argument("--out", default="../data/wolf_posts.json")
     ap.add_argument("--txt", default=None,
                     help="额外导出合并 TXT 路径, 如 ../data/wolf_posts.txt")
@@ -120,23 +122,63 @@ def main():
         print("找不到 chrome/chromium, 请安装或 --chrome 指定路径", file=sys.stderr)
         sys.exit(1)
 
-    url = "https://ngabbs.com/read.php?tid=" + args.tid
+    base = "https://ngabbs.com/read.php?tid=" + args.tid
     if args.authorid > 0:
-        url += "&authorid=%d" % args.authorid
-    print("抓取 " + url + " (headless chrome 免登录)")
-    html = dump_dom(url, chrome)
-    if "访客不能直接访问" in html:
-        print("仍被拦截(guestJs 重载未生效, 可能需调 virtual-time-budget)",
-              file=sys.stderr)
-        sys.exit(1)
-    posts, owner_uid, skipped = parse_posts(html)
-    print("解析到 " + str(len(posts)) + " 条发言" +
-          ("(已滤掉 %d 条粉丝回帖)" % skipped if skipped else ""))
+        base += "&authorid=%d" % args.authorid
+    print("抓取 " + base + " (headless chrome 免登录)")
+
+    all_posts = {}   # idx -> post (楼层号跨页唯一, 天然去重)
+    owner_uid = 0
+    empty_streak = 0
+    page = 1
+    while True:
+        url = base if page == 1 else base + "&page=%d" % page
+        try:
+            html = dump_dom(url, chrome)
+        except Exception as e:  # noqa
+            print("第 %d 页抓取异常: %s" % (page, e), file=sys.stderr)
+            empty_streak += 1
+            if empty_streak >= 2 or (args.pages and page >= args.pages):
+                break
+            page += 1
+            continue
+        if "访客不能直接访问" in html:
+            print("第 %d 页被拦截(guestJs 未生效), 稍后重试" % page, file=sys.stderr)
+            empty_streak += 1
+            if empty_streak >= 2:
+                break
+            page += 1
+            continue
+        posts_page, oid, skipped = parse_posts(html)
+        if not owner_uid:
+            owner_uid = oid
+        new_cnt = 0
+        for p in posts_page:
+            if p["idx"] not in all_posts:
+                all_posts[p["idx"]] = p
+                new_cnt += 1
+        print("  第 %d 页: %d 条(新 %d, 滤粉丝 %d)" %
+              (page, len(posts_page), new_cnt, skipped))
+        if new_cnt == 0:
+            empty_streak += 1
+            if empty_streak >= 2:
+                break
+        else:
+            empty_streak = 0
+        if args.pages and page >= args.pages:
+            break
+        if page >= 60:   # 安全上限
+            print("超过 60 页安全上限, 停止", file=sys.stderr)
+            break
+        page += 1
+
+    posts = [all_posts[k] for k in sorted(all_posts)]
+    print("共抓 %d 页, 合并去重后 %d 条发言" % (page, len(posts)))
     tz8 = timezone(timedelta(hours=8))
     fetched_at = datetime.now(tz8).strftime("%Y-%m-%d %H:%M:%S")
     out = {
         "tid": args.tid,
-        "url": url,
+        "url": base,
         "fetched_at": fetched_at,
         "owner": "啊狼",
         "owner_uid": owner_uid,
