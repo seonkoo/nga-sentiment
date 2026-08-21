@@ -37,6 +37,11 @@ def main():
     posts_json = POSTS.read_text(encoding="utf-8").replace("</", "<\\/")
     ana_json = ANALYSIS.read_text(encoding="utf-8").replace("</", "<\\/")
 
+    # 幂等: 先清掉之前注入的内嵌数据块(防止重复注入累积)
+    html = re.sub(
+        r"<script>\s*/\* 内嵌数据: build_standalone\.py 生成.*?</script>\s*",
+        "", html, flags=re.S)
+
     # 1) 注入内嵌数据
     embed = ("<script>\n"
              "/* 内嵌数据: build_standalone.py 生成, 更新数据请重跑 */\n"
