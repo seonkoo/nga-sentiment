@@ -27,20 +27,35 @@ jobs:
 
       - name: 环境自检 (chrome + NGA 可达性)
         run: |
-          google-chrome-stable --version
+          google-chrome-stable --version > /tmp/diag.txt 2>&1
           timeout 90 google-chrome-stable --headless --disable-gpu --no-sandbox \
             --disable-dev-shm-usage --virtual-time-budget=15000 \
             --dump-dom "https://ngabbs.com/read.php?tid=47288722&authorid=150058" \
-            > /tmp/probe.html 2>/tmp/probe.err || echo "chrome rc=$?"
-          echo "probe size: $(wc -c </tmp/probe.html)"
-          echo "拦截页标志: $(grep -c '访客不能直接访问' /tmp/probe.html)"
-          echo "--- chrome stderr ---"
-          head -c 500 /tmp/probe.err || true
+            > /tmp/probe.html 2>/tmp/probe.err || echo "chrome rc=$?" >> /tmp/diag.txt
+          echo "probe_size=$(wc -c </tmp/probe.html)" >> /tmp/diag.txt
+          echo "probe_block=$(grep -c '访客不能直接访问' /tmp/probe.html)" >> /tmp/diag.txt
+          echo "probe_posts=$(grep -c 'postcontent' /tmp/probe.html)" >> /tmp/diag.txt
+          head -c 300 /tmp/probe.err >> /tmp/diag.txt
 
       - name: 全页抓取狼大发言 (自动检测页数)
         run: |
           cd scraper
-          python wolf_fetch.py --out ../data/wolf_posts.json --txt ../data/wolf_posts.txt
+          python wolf_fetch.py --out ../data/wolf_posts.json --txt ../data/wolf_posts.txt \
+            2>&1 | tee /tmp/fetch.log
+          rc=$?
+          echo "fetch_rc=$rc" >> /tmp/diag.txt
+          if [ $rc -ne 0 ]; then cat /tmp/fetch.log >> /tmp/diag.txt; fi
+          exit $rc
+
+      - name: 上传诊断到 repo (调试用, 定位后删除)
+        if: always()
+        run: |
+          cp /tmp/diag.txt diag.txt || true
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add diag.txt
+          git commit -m "debug: 抓取诊断" || echo "无变化"
+          git push
 
       - name: 智谱解读 (未配 Key 时优雅跳过)
         env:
