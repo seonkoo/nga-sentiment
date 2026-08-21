@@ -21,13 +21,30 @@ jobs:
 
       - name: 安装 playwright + chromium
         run: |
+          set -e
           pip install playwright -q
-          python -m playwright install --with-deps chromium 2>&1 | tail -3
+          python -m playwright install chromium --with-deps
+          python -c "from playwright.sync_api import sync_playwright; print('✅ playwright OK')"
 
       - name: 全页抓取狼大发言 (自动检测页数)
         run: |
           cd scraper
-          python fetch_playwright.py --out ../data/wolf_posts.json --txt ../data/wolf_posts.txt
+          python fetch_playwright.py --out ../data/wolf_posts.json --txt ../data/wolf_posts.txt \
+            2>&1 | tee /tmp/fetch.log
+          rc=${PIPESTATUS[0]}
+          echo "fetch_rc=$rc" > /tmp/diag.txt
+          if [ $rc -ne 0 ]; then tail -40 /tmp/fetch.log >> /tmp/diag.txt; fi
+          exit $rc
+
+      - name: 上传诊断到 repo (调试用, 定位后删除)
+        if: always() && hashFiles('/tmp/diag.txt') != ''
+        run: |
+          cp /tmp/diag.txt diag.txt || true
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add diag.txt
+          git commit -m "debug: playwright 抓取诊断" || echo "无变化"
+          git push
 
       - name: 智谱解读 (未配 Key 时优雅跳过)
         env:
