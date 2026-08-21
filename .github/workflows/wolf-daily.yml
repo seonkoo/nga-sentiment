@@ -25,6 +25,18 @@ jobs:
         with:
           python-version: '3.11'
 
+      - name: 环境自检 (chrome + NGA 可达性)
+        run: |
+          google-chrome-stable --version
+          timeout 90 google-chrome-stable --headless --disable-gpu --no-sandbox \
+            --disable-dev-shm-usage --virtual-time-budget=15000 \
+            --dump-dom "https://ngabbs.com/read.php?tid=47288722&authorid=150058" \
+            > /tmp/probe.html 2>/tmp/probe.err || echo "chrome rc=$?"
+          echo "probe size: $(wc -c </tmp/probe.html)"
+          echo "拦截页标志: $(grep -c '访客不能直接访问' /tmp/probe.html)"
+          echo "--- chrome stderr ---"
+          head -c 500 /tmp/probe.err || true
+
       - name: 全页抓取狼大发言 (自动检测页数)
         run: |
           cd scraper

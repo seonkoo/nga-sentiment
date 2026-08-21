@@ -50,13 +50,17 @@ def dump_dom(url, chrome, timeout=60):
     os.close(fd)
     cmd = [
         chrome, "--headless", "--disable-gpu", "--no-sandbox",
-        "--disable-dev-shm-usage", "--virtual-time-budget=8000",
+        "--disable-dev-shm-usage", "--virtual-time-budget=15000",
         "--user-agent=" + UA, "--dump-dom", url,
     ]
     try:
         with open(path, "w", encoding="utf-8", errors="ignore") as fh:
-            subprocess.run(cmd, stdout=fh, stderr=subprocess.DEVNULL,
-                           timeout=timeout, check=True)
+            proc = subprocess.run(cmd, stdout=fh, stderr=subprocess.PIPE,
+                                  timeout=timeout, check=False)
+        if proc.returncode != 0:
+            err = proc.stderr.decode("utf-8", errors="ignore")
+            if err.strip():
+                print("chrome stderr: " + err[:500], file=sys.stderr)
     except subprocess.TimeoutExpired:
         print("chrome 超时", file=sys.stderr)
     with open(path, encoding="utf-8", errors="ignore") as fh:
