@@ -1,5 +1,6 @@
 name: Wolf Daily Auto-fetch
 # 云端全自动: 每天抓取狼大全部发言 -> 智谱解读 -> 打包单文件 -> 推 Pages
+# 抓取用 playwright 真浏览器(NGA guestJs 自动重载, headless --dump-dom 在云端 IP 被拦)
 on:
   schedule:
     - cron: '30 13 * * *'   # 每天 21:30 北京时间 (13:30 UTC)
@@ -14,48 +15,19 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: 安装 Chrome (headless 抓取 NGA 必需)
-        run: |
-          wget -q https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
-          sudo apt-get update -qq
-          sudo apt-get install -yqq ./google-chrome-stable_current_amd64.deb >/dev/null
-          google-chrome-stable --version
-
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
-      - name: 环境自检 (chrome + NGA 可达性)
+      - name: 安装 playwright + chromium
         run: |
-          google-chrome-stable --version > /tmp/diag.txt 2>&1
-          timeout 90 google-chrome-stable --headless --disable-gpu --no-sandbox \
-            --disable-dev-shm-usage --virtual-time-budget=15000 \
-            --dump-dom "https://ngabbs.com/read.php?tid=47288722&authorid=150058" \
-            > /tmp/probe.html 2>/tmp/probe.err || echo "chrome rc=$?" >> /tmp/diag.txt
-          echo "probe_size=$(wc -c </tmp/probe.html)" >> /tmp/diag.txt
-          echo "probe_block=$(grep -c '访客不能直接访问' /tmp/probe.html)" >> /tmp/diag.txt
-          echo "probe_posts=$(grep -c 'postcontent' /tmp/probe.html)" >> /tmp/diag.txt
-          head -c 300 /tmp/probe.err >> /tmp/diag.txt
+          pip install playwright -q
+          python -m playwright install --with-deps chromium 2>&1 | tail -3
 
       - name: 全页抓取狼大发言 (自动检测页数)
         run: |
           cd scraper
-          python wolf_fetch.py --out ../data/wolf_posts.json --txt ../data/wolf_posts.txt \
-            2>&1 | tee /tmp/fetch.log
-          rc=$?
-          echo "fetch_rc=$rc" >> /tmp/diag.txt
-          if [ $rc -ne 0 ]; then cat /tmp/fetch.log >> /tmp/diag.txt; fi
-          exit $rc
-
-      - name: 上传诊断到 repo (调试用, 定位后删除)
-        if: always()
-        run: |
-          cp /tmp/diag.txt diag.txt || true
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add diag.txt
-          git commit -m "debug: 抓取诊断" || echo "无变化"
-          git push
+          python fetch_playwright.py --out ../data/wolf_posts.json --txt ../data/wolf_posts.txt
 
       - name: 智谱解读 (未配 Key 时优雅跳过)
         env:
