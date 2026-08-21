@@ -39,7 +39,7 @@
 const EMBED_POSTS = {
   "tid": "47288722",
   "url": "https://ngabbs.com/read.php?tid=47288722&authorid=150058",
-  "fetched_at": "2026-08-21 08:28:36",
+  "fetched_at": "2026-08-21 08:33:30",
   "owner": "啊狼",
   "owner_uid": 150058,
   "posts": [
@@ -2622,8 +2622,8 @@ const EMBED_POSTS = {
 const EMBED_ANALYSIS = {
   "tid": "47288722",
   "owner": "啊狼",
-  "fetched_at": "2026-08-21 08:28:36",
-  "analyzed_at": "2026-08-21 08:28:51",
+  "fetched_at": "2026-08-21 08:33:30",
+  "analyzed_at": "2026-08-21 08:33:41",
   "ai_enabled": true,
   "model": "glm-4-flash",
   "analysis": {
@@ -2632,8 +2632,8 @@ const EMBED_ANALYSIS = {
       "bias": "bear",
       "confidence": 0.7
     },
-    "strategy": "操作策略: 结合蓝筹长线，低吸分批。关注放量情况，认为地量后放量是积极信号。",
-    "risk": "风险提示: 没有能力每次买到最低点，不建议追求极致的低点买入。",
+    "strategy": "操作策略: 结合蓝筹长线，低吸分批。关注放量情况，认为放量是市场健康的表现。但强调不追求最低点，避免频繁交易。",
+    "risk": "风险提示: 对市场波动的反应过于敏感，可能忽视长期趋势。",
     "disclaimer": "内容为 AI 基于发言的归纳，非投资建议。"
   }
 };
@@ -2690,7 +2690,7 @@ function renderPosts(d){
   <div class="card">
     <h2>🐺 啊狼发言合集 <span class="tag">${posts.length} 条（新→旧）</span></h2>
     ${items || '<div class="err">暂无发言</div>'}
-    <div style="margin-top:12px"><button class="copy-btn" id="copyAll">📋 复制全部发言</button> <button class="copy-btn" id="dlTxt">⬇️ 下载 TXT</button> <button class="copy-btn" id="dlTxt">⬇️ 下载 TXT</button> <button class="copy-btn" id="dlTxt">⬇️ 下载 TXT</button> <button class="copy-btn" id="dlTxt">⬇️ 下载 TXT</button> <button class="copy-btn" id="dlTxt">⬇️ 下载 TXT</button></div>
+    <div style="margin-top:12px"><button class="copy-btn" id="copyAll">📋 复制全部发言</button> <button class="copy-btn" id="dlTxt">⬇️ 下载 TXT</button> <button class="copy-btn" id="dlTxt">⬇️ 下载 TXT</button> <button class="copy-btn" id="dlTxt">⬇️ 下载 TXT</button> <button class="copy-btn" id="dlTxt">⬇️ 下载 TXT</button> <button class="copy-btn" id="dlTxt">⬇️ 下载 TXT</button> <button class="copy-btn" id="dlTxt">⬇️ 下载 TXT</button></div>
   </div>`;
 }
 async function main(){
@@ -2719,6 +2719,30 @@ async function main(){
   }
 }
 main();
+
+    const dl = document.getElementById("dlTxt");
+    if (dl) dl.onclick = () => {
+      const lines = [];
+      lines.push("NGA 狼大发言合集");
+      lines.push("来源: " + (posts.url||""));
+      lines.push("采集: " + (posts.fetched_at||"") + " | 共 " + (posts.posts?.length||0) + " 条");
+      lines.push("==============================================");
+      (posts.posts||[]).forEach((p,i) => {
+        lines.push("【" + (i+1) + "】" + (p.subject||""));
+        lines.push(p.content);
+        lines.push("");
+        lines.push("----------------------------------------------");
+        lines.push("");
+      });
+      const blob = new Blob([lines.join("\n")], {type:"text/plain;charset=utf-8"});
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = "wolf_posts.txt";
+      a.click();
+      URL.revokeObjectURL(a.href);
+      dl.textContent = "已导出 ✅";
+    };
+
 
     const dl = document.getElementById("dlTxt");
     if (dl) dl.onclick = () => {
