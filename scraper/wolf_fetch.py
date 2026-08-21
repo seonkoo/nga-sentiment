@@ -174,6 +174,10 @@ def main():
 
     posts = [all_posts[k] for k in sorted(all_posts)]
     print("共抓 %d 页, 合并去重后 %d 条发言" % (page, len(posts)))
+    if not posts:
+        print("❌ 抓取结果为空(NGA 拦截或网络异常), 退出避免覆盖已有数据",
+              file=sys.stderr)
+        sys.exit(2)
     tz8 = timezone(timedelta(hours=8))
     fetched_at = datetime.now(tz8).strftime("%Y-%m-%d %H:%M:%S")
     out = {
