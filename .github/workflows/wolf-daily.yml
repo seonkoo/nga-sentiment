@@ -37,14 +37,15 @@ jobs:
           exit $rc
 
       - name: 上传诊断到 repo (调试用, 定位后删除)
-        if: always() && hashFiles('/tmp/diag.txt') != ''
+        if: always()
         run: |
-          cp /tmp/diag.txt diag.txt || true
+          mkdir -p /tmp || true
+          if [ -f /tmp/diag.txt ]; then cp /tmp/diag.txt diag.txt; fi
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add diag.txt
-          git commit -m "debug: playwright 抓取诊断" || echo "无变化"
-          git push
+          git add diag.txt 2>/dev/null || true
+          git commit -m "debug: playwright 抓取诊断" 2>/dev/null || echo "无变化"
+          git push 2>/dev/null || true
 
       - name: 智谱解读 (未配 Key 时优雅跳过)
         env:
