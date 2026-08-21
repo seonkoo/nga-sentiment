@@ -1,6 +1,5 @@
-Google Chrome 151.0.7922.173 
-probe_size=4928
-probe_block=2
-probe_posts=0
-[3024:3045:0821/001505.072432:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are "tcp" and on UNIX "unix")
-[3024:3045:0821/001505.072860:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server addfetch_rc=0
+fetch_rc=2
+❌ 抓取结果为空(NGA 拦截), 退出避免覆盖已有数据
+  第 1 页: 0 条(新 0, 滤粉丝 0) size=4675
+  第 2 页: 0 条(新 0, 滤粉丝 0) size=4696
+共抓 2 页, 合并去重后 0 条发言
